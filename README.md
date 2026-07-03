@@ -2,7 +2,7 @@
 
 ### 描述
 
-A React table view component with column rendering, computed columns, formatting and sorting utilities.
+A React table view component with column rendering, computed columns, formatting and sorting utilities
 
 ### 安装
 
