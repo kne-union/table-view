@@ -2,7 +2,6 @@ import { resolveColumnDimensions } from '../columnRenderType';
 
 export const SELECTION_CHECKBOX_WIDTH = 48;
 export const SELECTION_RADIO_WIDTH = 48;
-export const DEFAULT_COLUMN_WIDTH = 300;
 
 export const parseColumnWidth = width => {
   if (width == null) {
@@ -31,42 +30,19 @@ export const hasColumnSpan = column => column.span != null;
 
 export const getConfiguredColumnWidthPx = column => parseColumnWidth(column.width != null ? column.width : getResolvedColumnWidth(column));
 
-export const usesDefaultColumnWidth = (column, columns) => {
+export const hasColumnWidth = column => {
   if (hasColumnSpan(column)) {
     return false;
   }
-  if (column.width != null) {
-    return false;
-  }
-  if (getConfiguredColumnWidthPx(column) > 0) {
-    return false;
-  }
-  return !columns.some(hasColumnSpan);
+  return getConfiguredColumnWidthPx(column) > 0;
 };
 
-export const hasColumnWidth = (column, columns) => {
-  if (hasColumnSpan(column)) {
-    return false;
-  }
-  if (getConfiguredColumnWidthPx(column) > 0) {
-    return true;
-  }
-  return usesDefaultColumnWidth(column, columns);
-};
+export const shouldLastColumnFillRemaining = columns => !columns.some(hasColumnSpan) && columns.every(column => hasColumnWidth(column));
 
-export const shouldLastColumnFillRemaining = columns => !columns.some(hasColumnSpan);
-
-export const getColumnWidthPx = (column, colsSize = {}, columns = []) => {
-  if (hasColumnSpan(column)) {
-    return colsSize[column.name] || 0;
-  }
+export const getColumnWidthPx = (column, colsSize = {}) => {
   const configured = getConfiguredColumnWidthPx(column);
   if (configured > 0) {
     return configured;
-  }
-  if (usesDefaultColumnWidth(column, columns)) {
-    const measured = colsSize[column.name] || 0;
-    return Math.max(DEFAULT_COLUMN_WIDTH, measured);
   }
   return colsSize[column.name] || 0;
 };
@@ -74,18 +50,16 @@ export const getColumnWidthPx = (column, colsSize = {}, columns = []) => {
 export const formatColumnWidthPx = px => `${px}px`;
 
 export const getColumnTrackSize = (column, { defaultSpan, colsSize, isLastColumn, columns } = {}) => {
-  const widthPx = getColumnWidthPx(column, colsSize, columns);
-  if (hasColumnWidth(column, columns)) {
+  const widthPx = getColumnWidthPx(column, colsSize);
+  if (hasColumnWidth(column)) {
     if (isLastColumn && shouldLastColumnFillRemaining(columns)) {
       return `minmax(${widthPx}px, 1fr)`;
     }
     return `${widthPx}px`;
   }
-  if (widthPx > 0) {
-    return `minmax(${widthPx}px, 1fr)`;
-  }
-  const span = column.span ?? defaultSpan ?? 1;
-  return `minmax(0, ${span}fr)`;
+  const span = hasColumnSpan(column) ? column.span : (defaultSpan ?? 1);
+  const minWidth = colsSize[column.name] || 0;
+  return minWidth > 0 ? `minmax(${minWidth}px, ${span}fr)` : `minmax(0, ${span}fr)`;
 };
 
 export const getGridTemplateColumns = (columns, { defaultSpan, colsSize, rowSelection } = {}) => {
@@ -113,8 +87,8 @@ export const getGridTemplateColumns = (columns, { defaultSpan, colsSize, rowSele
 };
 
 export const getColumnLayout = (column, { defaultSpan, colsSize, isLastColumn, columns } = {}) => {
-  const widthBased = hasColumnWidth(column, columns);
-  const widthPx = getColumnWidthPx(column, colsSize, columns);
+  const widthBased = hasColumnWidth(column);
+  const widthPx = getColumnWidthPx(column, colsSize);
   const fillRemaining = isLastColumn && widthBased && shouldLastColumnFillRemaining(columns);
 
   return {
