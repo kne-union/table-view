@@ -32,7 +32,7 @@ const TableView = p => {
   const layoutColumns = useMemo(() => getLayoutColumns(columns), [columns]);
   const defaultSpan = useMemo(() => {
     const assignedSpan = layoutColumns.reduce((a, b) => a + (b.span || 0), 0);
-    const undistributedColCount = layoutColumns.filter(item => !hasColumnSpan(item) && !hasColumnWidth(item, layoutColumns)).length;
+    const undistributedColCount = layoutColumns.filter(item => !hasColumnSpan(item) && !hasColumnWidth(item)).length;
 
     return undistributedColCount > 0 ? Math.round(Math.max(24 - assignedSpan, 0) / undistributedColCount) : 1;
   }, [layoutColumns]);
