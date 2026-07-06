@@ -22,7 +22,7 @@
     },
     {
       "title": "renderType",
-      "description": "列 renderType 配置：main / amount / tag / status / tagList / list / options / description / enum，支持与 short / small / large 尺寸修饰组合",
+      "description": "列 renderType 配置：main / amount / tag / status / tagList / list / options / description，支持与 short / small / large 尺寸修饰组合",
       "code": "./render-type.js",
       "scope": [
         {
