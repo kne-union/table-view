@@ -21,11 +21,6 @@ const typeSize = {
     min: 120,
     max: 400
   },
-  enum: {
-    width: 140,
-    min: 100,
-    max: 400
-  },
   tag: {
     width: 140,
     min: 100,

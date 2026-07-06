@@ -129,7 +129,6 @@ const BaseExample = () => {
           <li><code>list</code> — 文本列表，可用 <code>split</code> 指定分隔符</li>
           <li><code>options</code> — 操作列，<code>getValueOf</code> 返回按钮配置数组</li>
           <li><code>description</code> — 长文本描述列</li>
-          <li><code>enum</code> — 枚举值映射渲染</li>
         </ul>
         <p>
           可与尺寸修饰词组合：<code>short</code> / <code>small</code> / <code>large</code>（如 <code>tag-short</code>、<code>status-small</code>、<code>main-large</code>）。

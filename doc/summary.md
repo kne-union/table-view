@@ -24,7 +24,7 @@
 
 ### 列渲染类型系统
 
-通过 `renderType` 属性，可以用声明式的方式定义列的渲染样式，无需手写 `render` 函数。内置 `main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description`、`enum` 等类型，并支持与 `short` / `small` / `large` 尺寸修饰组合。
+通过 `renderType` 属性，可以用声明式的方式定义列的渲染样式，无需手写 `render` 函数。内置 `main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等类型，并支持与 `short` / `small` / `large` 尺寸修饰组合。
 
 配合 `format` 属性可实现日期、金额、布尔值等展示格式化；配合 `getValueOf` 可传入 render 所需的复杂数据结构。
 

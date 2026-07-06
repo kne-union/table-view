@@ -38,7 +38,7 @@ npm i --save @kne/table-view
 
 ### 列渲染类型系统
 
-通过 `renderType` 属性，可以用声明式的方式定义列的渲染样式，无需手写 `render` 函数。内置 `main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description`、`enum` 等类型，并支持与 `short` / `small` / `large` 尺寸修饰组合。
+通过 `renderType` 属性，可以用声明式的方式定义列的渲染样式，无需手写 `render` 函数。内置 `main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等类型，并支持与 `short` / `small` / `large` 尺寸修饰组合。
 
 配合 `format` 属性可实现日期、金额、布尔值等展示格式化；配合 `getValueOf` 可传入 render 所需的复杂数据结构。
 
@@ -293,7 +293,7 @@ render(<BaseExample />);
 ```
 
 - renderType
-- 列 renderType 配置：main / amount / tag / status / tagList / list / options / description / enum，支持与 short / small / large 尺寸修饰组合
+- 列 renderType 配置：main / amount / tag / status / tagList / list / options / description，支持与 short / small / large 尺寸修饰组合
 - _TableView(@kne/current-lib_table-view)[import * as _TableView from "@kne/table-view"],(@kne/current-lib_table-view/dist/index.css),antd(antd)
 
 ```jsx
@@ -428,7 +428,6 @@ const BaseExample = () => {
           <li><code>list</code> — 文本列表，可用 <code>split</code> 指定分隔符</li>
           <li><code>options</code> — 操作列，<code>getValueOf</code> 返回按钮配置数组</li>
           <li><code>description</code> — 长文本描述列</li>
-          <li><code>enum</code> — 枚举值映射渲染</li>
         </ul>
         <p>
           可与尺寸修饰词组合：<code>short</code> / <code>small</code> / <code>large</code>（如 <code>tag-short</code>、<code>status-small</code>、<code>main-large</code>）。
@@ -1016,7 +1015,6 @@ const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, colu
 | `main` | 主信息列，支持 `primary` / `hover` / `onClick`，自动省略 | 300px |
 | `amount` | 金额列，右对齐，自动省略 | 140px |
 | `options` | 操作列，铺满单元格，配合 `@kne/button-group` | 180px |
-| `enum` | 枚举值渲染，映射为 Tag | 140px |
 | `tag` | 单个 Tag，`getValueOf` 返回 `{ type, text }` | 140px |
 | `status` | 状态 Badge，`getValueOf` 返回 `{ type, text }` | 100px |
 | `tagList` | 多个 Tag 列表 | 300px |

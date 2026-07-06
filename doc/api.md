@@ -182,7 +182,6 @@ const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, colu
 | `main` | 主信息列，支持 `primary` / `hover` / `onClick`，自动省略 | 300px |
 | `amount` | 金额列，右对齐，自动省略 | 140px |
 | `options` | 操作列，铺满单元格，配合 `@kne/button-group` | 180px |
-| `enum` | 枚举值渲染，映射为 Tag | 140px |
 | `tag` | 单个 Tag，`getValueOf` 返回 `{ type, text }` | 140px |
 | `status` | 状态 Badge，`getValueOf` 返回 `{ type, text }` | 100px |
 | `tagList` | 多个 Tag 列表 | 300px |

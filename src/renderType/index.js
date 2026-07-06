@@ -6,7 +6,6 @@ import tagList from './tagList';
 import status from './status';
 import list from './list';
 import options from './options';
-import enumRender from './enum';
 import description from './description';
 import { globalParams } from '../globalParams';
 
@@ -19,7 +18,6 @@ const renderType = {
   status,
   list,
   options,
-  enum: enumRender,
   description
 };
 
