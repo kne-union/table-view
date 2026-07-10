@@ -49,19 +49,27 @@ export const renderHeaderGridCells = ({ dataSource, columns, rowKey, rowSelectio
                   indeterminate={rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.length > 0 && !checkedAll}
                   onChange={e => {
                     const checked = e.target.checked;
-                    if (!checked) {
-                      typeof rowSelection.onIsSelectAllChange === 'function' ? rowSelection.onIsSelectAllChange(false) : rowSelection.onChange([]);
-                    } else {
-                      typeof rowSelection.onIsSelectAllChange === 'function'
-                        ? rowSelection.onIsSelectAllChange(true)
-                        : dataSource &&
-                          dataSource.length > 0 &&
-                          rowSelection.onChange(
-                            dataSource.map(item => {
-                              return get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
-                            })
-                          );
+                    if (typeof rowSelection.onIsSelectAllChange === 'function') {
+                      rowSelection.onIsSelectAllChange(checked);
+                      return;
                     }
+                    const getId = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
+                    const pageKeys = (dataSource || []).map(getId);
+                    const existing = rowSelection.selectedRowKeys || [];
+                    if (!checked) {
+                      rowSelection.onChange(existing.filter(key => pageKeys.indexOf(key) === -1));
+                      return;
+                    }
+                    if (!dataSource || dataSource.length === 0) {
+                      return;
+                    }
+                    const merged = existing.slice();
+                    pageKeys.forEach(key => {
+                      if (merged.indexOf(key) === -1) {
+                        merged.push(key);
+                      }
+                    });
+                    rowSelection.onChange(merged);
                   }}
                 />
               );
