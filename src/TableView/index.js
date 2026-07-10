@@ -31,7 +31,27 @@ const TableView = p => {
     },
     p
   );
-  const { className, dataSource, columns: columnsProp, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, empty, onRowSelect, render, renderMobile, context, sticky, headerStyle, sortRender, size, ...others } = props;
+  const {
+    className,
+    dataSource,
+    columns: columnsProp,
+    rowKey,
+    rowSelection,
+    valueIsEmpty,
+    emptyIsPlaceholder,
+    placeholder,
+    empty,
+    onRowSelect,
+    render,
+    renderMobile,
+    context,
+    sticky,
+    headerStyle,
+    sortRender,
+    mobileSortToolbar,
+    size,
+    ...others
+  } = props;
   const sizeClassName = size === 'small' ? style['is-size-small'] : size === 'large' ? style['is-size-large'] : null;
   const resolvedRenderMobile = useMemo(() => resolveRenderMobile(renderMobile), [renderMobile]);
   const useMobileRender = isRenderMobileActive(renderMobile, isMobile);
@@ -169,6 +189,7 @@ const TableView = p => {
         context={nextContext}
         onRowSelect={onRowSelect}
         onSelectionChange={handleRowClick}
+        mobileSortToolbar={mobileSortToolbar}
       />
     );
   };

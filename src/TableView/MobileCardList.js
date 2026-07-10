@@ -5,39 +5,17 @@ import get from 'lodash/get';
 import computeColumnsValue, { computeDisplay } from '../computeColumnsValue';
 import { isOptionsColumn } from '../columnRenderType';
 import { renderCellContent } from '../renderCellContent';
+import MobileCardToolbar from './MobileCardToolbar';
 import style from './style.module.scss';
 
-const MobileCardList = ({ dataSource, columns, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, context, onRowSelect, onSelectionChange }) => {
+const MobileCardList = ({ dataSource, columns, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, context, onRowSelect, onSelectionChange, mobileSortToolbar }) => {
   const getId = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
   const fieldColumns = columns.filter(column => !isOptionsColumn(column));
   const actionColumns = columns.filter(column => isOptionsColumn(column));
-  const showSelectAll = rowSelection?.type === 'checkbox' && rowSelection.allowSelectedAll;
-  const checkedAll = showSelectAll && (rowSelection.isSelectedAll || (dataSource && dataSource.every(item => rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(getId(item)) > -1)));
-  const indeterminate = showSelectAll && rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.length > 0 && !checkedAll;
-
-  const handleSelectAllChange = e => {
-    const checked = e.target.checked;
-    if (!checked) {
-      typeof rowSelection.onIsSelectAllChange === 'function' ? rowSelection.onIsSelectAllChange(false) : rowSelection.onChange([]);
-      return;
-    }
-    if (typeof rowSelection.onIsSelectAllChange === 'function') {
-      rowSelection.onIsSelectAllChange(true);
-      return;
-    }
-    if (dataSource && dataSource.length > 0) {
-      rowSelection.onChange(dataSource.map(getId));
-    }
-  };
 
   return (
     <div className={classnames(style['mobile-card-list'], 'info-page-table-mobile-card-list')}>
-      {showSelectAll ? (
-        <div className={style['mobile-card-select-all']}>
-          <Checkbox checked={!!checkedAll} indeterminate={!!indeterminate} onChange={handleSelectAllChange} />
-          <span>全选</span>
-        </div>
-      ) : null}
+      <MobileCardToolbar rowSelection={rowSelection} dataSource={dataSource} getId={getId} mobileSortToolbar={mobileSortToolbar} columns={columns} />
       {dataSource.map(item => {
         const id = getId(item);
         const isChecked = rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(id) > -1;
@@ -87,7 +65,9 @@ const MobileCardList = ({ dataSource, columns, rowKey, rowSelection, valueIsEmpt
             className={classnames(style['mobile-card'], 'info-page-table-mobile-card', {
               [style['is-selected-all']]: rowSelection?.isSelectedAll,
               [style['is-selected']]: isChecked,
-              [style['is-disabled']]: item.disabled
+              [style['is-disabled']]: item.disabled,
+              'is-mobile-card-selected': isChecked,
+              'is-mobile-card-selected-all': rowSelection?.isSelectedAll
             })}
             onClick={handleCardClick}
           >
