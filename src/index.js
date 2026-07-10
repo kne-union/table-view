@@ -10,5 +10,6 @@ export { default as preset, globalParams } from './preset';
 export { default as computeColumnsValue, computeDisplay, computeColumnsDisplay } from './computeColumnsValue';
 export { default as formatView, defaultFormat, calcArgs } from './formatView';
 export { renderCellContent, getColumnEllipsis } from './renderCellContent';
+export { resolveRenderMobile, isRenderMobileActive } from './resolveRenderMobile';
 export { parseColumnWidth, getColumnLayout, getGridTemplateColumns, hasColumnSpan, hasColumnWidth } from './TableView/columnWidth';
 export { wrapColumnHeaderTitle } from './columnHeaderTitle';

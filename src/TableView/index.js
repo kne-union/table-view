@@ -1,21 +1,25 @@
 import React, { useMemo, useState } from 'react';
 import Header, { renderHeaderGridCells } from './Header';
+import MobileCardList from './MobileCardList';
 import { Checkbox, Empty, Radio } from 'antd';
 import classnames from 'classnames';
 import get from 'lodash/get';
 import computeColumnsValue, { computeDisplay } from '../computeColumnsValue';
 import { isEmpty } from '@kne/is-empty';
+import { useIsMobile } from '@kne/responsive-utils';
 import { getColumnLayout, getGridTemplateColumns, hasColumnSpan, hasColumnWidth } from './columnWidth';
 import style from './style.module.scss';
 import useSelectedRow from '../useSelectedRow';
 import useSort from '../useSort';
 import { renderCellContent } from '../renderCellContent';
 import { resolveColumns } from '../columnRenderType';
+import { isRenderMobileActive, resolveRenderMobile } from '../resolveRenderMobile';
 
 const getLayoutColumns = columns => columns.filter(column => column.display !== false);
 
 const TableView = p => {
   const [colsSize, setColsSize] = useState({});
+  const isMobile = useIsMobile();
   const props = Object.assign(
     {},
     {
@@ -27,7 +31,10 @@ const TableView = p => {
     },
     p
   );
-  const { className, dataSource, columns: columnsProp, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, empty, onRowSelect, render, context, sticky, headerStyle, sortRender, ...others } = props;
+  const { className, dataSource, columns: columnsProp, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, empty, onRowSelect, render, renderMobile, context, sticky, headerStyle, sortRender, size, ...others } = props;
+  const sizeClassName = size === 'small' ? style['is-size-small'] : size === 'large' ? style['is-size-large'] : null;
+  const resolvedRenderMobile = useMemo(() => resolveRenderMobile(renderMobile), [renderMobile]);
+  const useMobileRender = isRenderMobileActive(renderMobile, isMobile);
   const columns = useMemo(() => resolveColumns(columnsProp), [columnsProp]);
   const layoutColumns = useMemo(() => getLayoutColumns(columns), [columns]);
   const defaultSpan = useMemo(() => {
@@ -145,6 +152,27 @@ const TableView = p => {
     </div>
   );
 
+  const renderMobileCardBody = (nextDataSource = dataSource, nextContext = context) => {
+    if (!nextDataSource || nextDataSource.length === 0) {
+      return <div className={style['empty']}>{empty}</div>;
+    }
+
+    return (
+      <MobileCardList
+        dataSource={nextDataSource}
+        columns={layoutColumns}
+        rowKey={rowKey}
+        rowSelection={rowSelection}
+        valueIsEmpty={valueIsEmpty}
+        emptyIsPlaceholder={emptyIsPlaceholder}
+        placeholder={placeholder}
+        context={nextContext}
+        onRowSelect={onRowSelect}
+        onSelectionChange={handleRowClick}
+      />
+    );
+  };
+
   const renderBody = (dataSource, context) => {
     if (!dataSource || dataSource.length === 0) {
       return <div className={style['empty']}>{empty}</div>;
@@ -153,12 +181,28 @@ const TableView = p => {
     return <div className={classnames('info-page-table-body')}>{renderGrid(dataSource, context)}</div>;
   };
 
+  if (useMobileRender) {
+    if (typeof resolvedRenderMobile === 'function') {
+      return resolvedRenderMobile({ ...others, header: null, renderBody: renderMobileCardBody });
+    }
+
+    return (
+      <div {...others} className={classnames(style['table'], style['tableView'], style['is-mobile-card'], 'info-page-table', sizeClassName, className)}>
+        {renderMobileCardBody(dataSource, context)}
+      </div>
+    );
+  }
+
   if (typeof render === 'function') {
-    return render({ ...others, header, renderBody });
+    return (
+      <div {...others} className={classnames(style['table'], style['tableView'], 'info-page-table', sizeClassName, className)}>
+        {render({ header, renderBody })}
+      </div>
+    );
   }
 
   return (
-    <div {...others} className={classnames(style['table'], style['tableView'], 'info-page-table', className)}>
+    <div {...others} className={classnames(style['table'], style['tableView'], 'info-page-table', sizeClassName, className)}>
       {dataSource && dataSource.length > 0 ? (
         renderGrid(dataSource, context)
       ) : (
