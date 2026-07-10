@@ -12,7 +12,7 @@ npm i --save @kne/table-view
 
 ### 概述
 
-`@kne/table-view` 是一个基于 React 和 Ant Design 的表格视图组件库，提供轻量灵活的 CSS Grid 表格布局，以及列渲染、格式化、排序、行选择等开箱即用的能力。组件库从 `@kne/table-page` 中独立拆分，专注于表格视图层与列渲染体系，可单独使用，也可被 `TablePage`、`Table` 等上层组件集成。
+`@kne/table-view` 是一个基于 React 和 Ant Design 的表格视图组件库，提供轻量灵活的 CSS Grid 表格布局，以及列渲染、格式化、排序、行选择等开箱即用的能力。专注于表格视图层与列渲染体系，可单独使用或嵌入业务页面。
 
 ### 核心组件
 
@@ -36,6 +36,48 @@ npm i --save @kne/table-view
 
 排序 Hook，配合 `TableView` 的 `sortRender` 实现表头排序交互。支持单列排序与多列排序，排序状态循环切换：DESC → ASC → 取消。提供 `sortDataSource` 工具函数用于本地排序（包含中文排序）。
 
+### 渲染逻辑
+
+#### 桌面端：CSS Grid 表格
+
+`TableView` 默认以 CSS Grid 渲染表头与表体。列配置经 `resolveColumns` 解析后，按 `display !== false` 过滤得到布局列，再计算 `gridTemplateColumns`（支持 `span` 栅格、`width` 固定宽、列宽拖动后的 `colsSize`）。每行数据走统一的单元格渲染管线：
+
+1. **`computeColumnsValue`**：按列取原始值（`getValueOf` 或 `dataSource[name]`），经 `format` 格式化，过滤 `display` 为 false 或空值不展示的行
+2. **`computeDisplay`**：空值走 `placeholder` / `renderPlaceholder`；非空值调用列 `render`（见下方优先级）
+3. **`renderCellContent`**：按列 `ellipsis` / `cellFullWidth` 包裹 `Ellipsis` 与宽度约束后输出
+
+自定义外层布局时，可通过 `render={({ header, renderBody }) => ...}` 拆分表头与表体；无数据时仍渲染表头并展示 `empty`。
+
+#### 列渲染优先级
+
+| 优先级 | 来源 | 说明 |
+|--------|------|------|
+| 1 | `column.render` | 自定义函数，**最高优先级**；存在时不再走 `renderType` 内置渲染 |
+| 2 | `renderType` | 声明式类型（`main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等），由 `resolveColumn` 注入对应 `render` 与列宽维度 |
+| 3 | 原始值 | 无 `render` 且无有效 `renderType` 时，直接展示格式化后的 `value` |
+
+`render` 与 `renderType` 可同时配置：`renderType` 仍负责注入 `width` / `min` / `max` / `ellipsis` 等布局维度，仅单元格内容由 `render` 覆盖。
+
+`renderType` 支持尺寸修饰符组合，如 `enum-small`、`main-large`（`short` / `small` / `large`），维度可通过 `globalParams.renderTypeSize` 全局覆盖。
+
+#### 移动端：`renderMobile`
+
+移动端判断统一使用 `@kne/responsive-utils` 的 `useIsMobile()`（断点 768px）。仅当 `isRenderMobileActive(renderMobile, isMobile)` 为 true 时启用移动端专用渲染，桌面端始终走 Grid 或 `render`。
+
+| `renderMobile` 值 | 行为 |
+|-------------------|------|
+| `true` | 默认卡片 List（`MobileCardList`）：每行一张卡片，普通列纵向「标题 + 内容」，`options` 操作列固定右侧 |
+| `function` | 签名与 `render` 一致 `({ header, renderBody, ...props }) => ReactNode`，**完全接管**移动端渲染，优先级高于 `render`；可调用 `renderBody()` 复用默认卡片 |
+| `string` | 从 `preset({ renderMobile: { [name]: fn } })` 按名称查找；找到等同 function，**未注册则视为未开启**，移动端回退普通表格 |
+| 未设置 / `false` / 未注册 string | 不开启移动端专用渲染，移动端仍显示 Grid 表格 |
+
+默认卡片 List 细节：
+
+- 普通列与 `options` 列分离：`isOptionsColumn` 识别操作列，字段列在卡片主体纵向排列，操作列在右侧独立区域
+- 移动端操作区紧凑展示：`options` 列设置 `mobileOptions` 与 `buttonGroup.showLength: 0`，仅保留「⋯」入口，避免按钮截断
+- 支持 `rowSelection`（左侧 checkbox / radio）；`allowSelectedAll` 时列表顶部显示全选
+- 卡片 padding 跟随 `size`，复用 `--kne-table-cell-padding` CSS 变量
+
 ### 列渲染类型系统
 
 通过 `renderType` 属性，可以用声明式的方式定义列的渲染样式，无需手写 `render` 函数。内置 `main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等类型，并支持与 `short` / `small` / `large` 尺寸修饰组合。
@@ -57,7 +99,7 @@ npm i --save @kne/table-view
 
 - **详情页信息展示**：在 InfoPage 等场景中展示结构化数据列表
 - **轻量列表页**：不需要 antd Table 复杂能力时的简洁表格
-- **移动端适配**：栅格式布局更适合窄屏展示
+- **移动端适配**：`renderMobile` 启用卡片 List，或 CSS Grid 栅格式展示
 - **自定义表格渲染**：通过 `render` 属性拆分表头与表体，灵活组合布局
 - **列渲染复用**：`renderType` 体系统一 tag、status、amount 等常见列样式
 
@@ -435,6 +477,430 @@ const BaseExample = () => {
         </p>
       </div>
       <TableView dataSource={dataSource} columns={columns} />
+    </Flex>
+  );
+};
+
+render(<BaseExample />);
+
+```
+
+- column render
+- 列同时配置 render 与 renderType 时，render 优先级最高，覆盖内置 renderType 的单元格渲染
+- _TableView(@kne/current-lib_table-view)[import * as _TableView from "@kne/table-view"],(@kne/current-lib_table-view/dist/index.css),antd(antd)
+
+```jsx
+const { TableView } = _TableView;
+const { Flex, Tag } = antd;
+
+const statusMap = {
+  待发货: { type: 'warning', text: '待发货' },
+  处理中: { type: 'processing', text: '处理中' },
+  已完成: { type: 'success', text: '已完成' }
+};
+
+const dataSource = [
+  {
+    id: 'ORD001',
+    customerName: '深圳市腾讯计算机系统有限公司',
+    amount: 42500,
+    status: '待发货'
+  },
+  {
+    id: 'ORD002',
+    customerName: '华为技术有限公司',
+    amount: 85000,
+    status: '处理中'
+  },
+  {
+    id: 'ORD003',
+    customerName: '阿里巴巴集团控股有限公司',
+    amount: 120000,
+    status: '已完成'
+  }
+];
+
+const columns = [
+  { name: 'id', title: '编号', renderType: 'small' },
+  { name: 'customerName', title: '客户名称', renderType: 'main' },
+  {
+    name: 'amount',
+    title: '金额',
+    renderType: 'amount',
+    format: 'number-style:decimal-maximumFractionDigits:0-useGrouping:true-suffix:元'
+  },
+  {
+    name: 'status',
+    title: '状态（仅 renderType）',
+    renderType: 'status',
+    getValueOf: item => statusMap[item.status]
+  },
+  {
+    name: 'statusRender',
+    title: '状态（render 优先）',
+    renderType: 'status',
+    getValueOf: item => statusMap[item.status],
+    render: (value, { dataSource }) => (
+      <span style={{ color: '#1677ff' }}>
+        自定义渲染：{dataSource.status}（未走 status Badge）
+      </span>
+    )
+  }
+];
+
+const BaseExample = () => {
+  return (
+    <Flex vertical gap={24}>
+      <div style={{ color: '#666', fontSize: 13, lineHeight: 1.8 }}>
+        <p>
+          列同时配置 <code>render</code> 与 <code>renderType</code> 时，
+          <Tag color="blue" style={{ margin: '0 4px' }}>render 优先级最高</Tag>
+          ，会直接使用自定义 <code>render</code>，不再走内置 renderType。
+        </p>
+        <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
+          <li>「状态（仅 renderType）」列：走内置 <code>status</code>，渲染 Badge</li>
+          <li>「状态（render 优先）」列：同样写了 <code>renderType: 'status'</code>，但因存在 <code>render</code>，最终显示自定义内容</li>
+          <li>renderType 仍可提供列宽等维度（width / min / max），仅单元格内容渲染被 <code>render</code> 覆盖</li>
+        </ul>
+      </div>
+      <TableView dataSource={dataSource} columns={columns} />
+    </Flex>
+  );
+};
+
+render(<BaseExample />);
+
+```
+
+- renderMobile
+- 移动端专用渲染：true 为默认卡片 List；function 完全接管；string 从 preset 按名称查找渲染函数
+- _TableView(@kne/current-lib_table-view)[import * as _TableView from "@kne/table-view"],(@kne/current-lib_table-view/dist/index.css),antd(antd)
+
+```jsx
+const { TableView, preset } = _TableView;
+const { Flex, Tag, Card, Button, Dropdown } = antd;
+const { useState } = React;
+
+const statusMap = {
+  已完成: { color: 'success', text: '已完成' },
+  处理中: { color: 'processing', text: '处理中' },
+  待发货: { color: 'warning', text: '待发货' }
+};
+
+const dataSource = [
+  {
+    id: 'ORD001',
+    customerName: '深圳市腾讯计算机系统有限公司',
+    contact: '张三',
+    phone: '13800138000',
+    amount: 42500,
+    status: '已完成'
+  },
+  {
+    id: 'ORD002',
+    customerName: '华为技术有限公司',
+    contact: '李四',
+    phone: '13900149000',
+    amount: 85000,
+    status: '处理中'
+  },
+  {
+    id: 'ORD003',
+    customerName: '阿里巴巴集团控股有限公司',
+    contact: '王五',
+    phone: '13700157000',
+    amount: 120000,
+    status: '待发货'
+  }
+];
+
+const columns = [
+  { name: 'id', title: '订单编号', width: 120, renderType: 'small' },
+  { name: 'customerName', title: '客户名称', span: 10, renderType: 'main' },
+  { name: 'contact', title: '联系人', width: 80 },
+  { name: 'phone', title: '联系电话', width: 130, render: value => value.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') },
+  {
+    name: 'amount',
+    title: '订单金额',
+    renderType: 'amount',
+    format: 'number-style:decimal-maximumFractionDigits:0-useGrouping:true-suffix:元'
+  },
+  {
+    name: 'status',
+    title: '状态',
+    width: 100,
+    renderType: 'status',
+    getValueOf: item => ({ type: statusMap[item.status]?.color || 'default', text: item.status })
+  },
+  {
+    name: 'options',
+    title: '操作',
+    renderType: 'options',
+    getValueOf: item => [
+      { children: '查看', onClick: () => console.log('查看', item.id) },
+      { children: '编辑', onClick: () => console.log('编辑', item.id) },
+      { children: '删除', isDelete: true, message: &#96;确定删除 ${item.id} 吗？&#96;, onClick: () => console.log('删除', item.id) }
+    ]
+  }
+];
+
+preset({
+  renderMobile: {
+    orderCard: ({ renderBody }) => {
+      const totalAmount = dataSource.reduce((sum, item) => sum + item.amount, 0);
+      return (
+        <div
+          className="preset-order-card-example"
+          style={{
+            borderRadius: 12,
+            background: '#f5f7fa',
+            padding: 16
+          }}
+        >
+          <style>{&#96;
+            .preset-order-card-example .info-page-table-mobile-card {
+              background: linear-gradient(135deg, #ffffff 0%, #f9f0ff 52%, #eef2ff 100%) !important;
+              border-color: #e8dfff !important;
+            }
+            .preset-order-card-example .info-page-table-mobile-card:hover {
+              background: linear-gradient(135deg, #fafafa 0%, #f3ebff 52%, #e8eeff 100%) !important;
+            }
+          &#96;}</style>
+          <div style={{ marginBottom: 16 }}>
+            <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, color: 'rgba(0,0,0,0.88)' }}>近期订单</div>
+              <Tag color="purple" style={{ margin: 0, flexShrink: 0 }}>
+                preset: orderCard
+              </Tag>
+            </Flex>
+            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+              {dataSource.length} 笔 · 合计 ¥{totalAmount.toLocaleString()}
+            </div>
+          </div>
+          <div
+            className="info-page-table"
+            style={{
+              '--kne-table-cell-padding': '14px 8px'
+            }}
+          >
+            {renderBody()}
+          </div>
+        </div>
+      );
+    }
+  }
+});
+
+const formatPhone = phone => phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+
+const getOrderActions = item => [
+  { key: 'view', label: '查看', onClick: () => console.log('查看', item.id) },
+  { key: 'edit', label: '编辑', onClick: () => console.log('编辑', item.id) },
+  { key: 'delete', label: '删除', danger: true, onClick: () => console.log('删除', item.id) }
+];
+
+const OrderMobileCard = ({ item }) => {
+  const status = statusMap[item.status] || { color: 'default', text: item.status };
+  const actionItems = getOrderActions(item);
+
+  return (
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)'
+      }}
+    >
+      <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 10 }}>
+        <Flex align="center" gap={8} wrap="wrap" style={{ flex: 1, minWidth: 0 }}>
+          <Tag color={status.color} style={{ margin: 0 }}>
+            {status.text}
+          </Tag>
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{item.id}</span>
+        </Flex>
+        <Dropdown
+          trigger={['click']}
+          menu={{
+            items: actionItems.map(({ key, label, danger, onClick }) => ({
+              key,
+              label,
+              danger,
+              onClick: ({ domEvent }) => {
+                domEvent.stopPropagation();
+                onClick();
+              }
+            }))
+          }}
+        >
+          <Button type="text" size="small" style={{ padding: '0 4px' }} onClick={e => e.stopPropagation()}>
+            ···
+          </Button>
+        </Dropdown>
+      </Flex>
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: 'rgba(0,0,0,0.88)',
+          lineHeight: 1.5,
+          marginBottom: 6
+        }}
+      >
+        {item.customerName}
+      </div>
+      <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', lineHeight: 1.6 }}>
+        {item.contact} · {formatPhone(item.phone)}
+      </div>
+      <Flex
+        justify="space-between"
+        align="center"
+        gap={12}
+        style={{
+          marginTop: 14,
+          paddingTop: 12,
+          borderTop: '1px solid #f0f0f0'
+        }}
+      >
+        <Flex align="baseline" gap={6} style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', flexShrink: 0 }}>订单金额</span>
+          <span style={{ fontSize: 16, fontWeight: 600, color: '#1677ff' }}>¥{item.amount.toLocaleString()}</span>
+        </Flex>
+        <Flex gap={4} align="center" style={{ flexShrink: 0 }}>
+          {actionItems.slice(0, 2).map(({ key, label, onClick }) => (
+            <Button
+              key={key}
+              type="link"
+              size="small"
+              style={{ padding: '0 4px', height: 'auto' }}
+              onClick={e => {
+                e.stopPropagation();
+                onClick();
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </Flex>
+      </Flex>
+    </div>
+  );
+};
+
+const DefaultMobileCards = () => {
+  const [selectKeys, setSelectKeys] = useState([]);
+  const totalAmount = selectKeys.reduce((sum, id) => sum + (dataSource.find(d => d.id === id)?.amount || 0), 0);
+  return (
+    <div>
+      <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
+        <code>renderMobile={'{true}'}</code>：移动端启用默认卡片 List（每行一张卡片，操作列靠右）；
+        开启 <code>allowSelectedAll</code> 后顶部显示全选。请用示例预览的手机模式查看效果。
+      </div>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
+        <span>
+          已选 <strong>{selectKeys.length}</strong> 个订单，总金额 <strong style={{ color: '#52c41a' }}>¥{totalAmount.toLocaleString()}</strong>
+        </span>
+      </Flex>
+      <TableView
+        dataSource={dataSource}
+        columns={columns}
+        size="large"
+        renderMobile
+        rowSelection={{
+          type: 'checkbox',
+          allowSelectedAll: true,
+          selectedRowKeys: selectKeys,
+          onChange: keys => setSelectKeys(keys)
+        }}
+      />
+    </div>
+  );
+};
+
+const CustomMobileRender = () => {
+  const totalAmount = dataSource.reduce((sum, item) => sum + item.amount, 0);
+  return (
+    <div>
+      <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
+        <code>renderMobile</code> 为 function 时完全接管渲染，可自定义主次关系卡片：客户名称作主信息，状态/编号/联系人作次要信息。
+        桌面端仍走 <code>render</code>，样式与普通 TableView 一致。
+      </div>
+      <Card size="small" title="近期订单" extra={<Tag>桌面 render</Tag>} styles={{ body: { padding: 0 } }}>
+        <Flex
+          justify="space-between"
+          align="center"
+          style={{ padding: '12px 16px', background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}
+        >
+          <Flex gap={8} align="center">
+            <Tag color="blue">{dataSource.length} 笔</Tag>
+            <span style={{ color: 'rgba(0,0,0,0.65)', fontSize: 13 }}>
+              合计 <strong style={{ color: '#52c41a' }}>¥{totalAmount.toLocaleString()}</strong>
+            </span>
+          </Flex>
+          <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>桌面端 render 自定义外层</span>
+        </Flex>
+        <TableView
+          dataSource={dataSource}
+          columns={columns}
+          render={({ renderBody }) => <div style={{ overflowX: 'auto' }}>{renderBody(dataSource)}</div>}
+          renderMobile={() => (
+            <div
+              style={{
+                borderRadius: 12,
+                background: '#f5f7fa',
+                padding: 16
+              }}
+            >
+              <div style={{ marginBottom: 16 }}>
+                <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 4 }}>
+                  <div style={{ fontSize: 17, fontWeight: 600, color: 'rgba(0,0,0,0.88)' }}>近期订单</div>
+                  <Tag color="processing" style={{ margin: 0, flexShrink: 0 }}>
+                    renderMobile
+                  </Tag>
+                </Flex>
+                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+                  {dataSource.length} 笔 · 合计 ¥{totalAmount.toLocaleString()}
+                </div>
+              </div>
+              <Flex vertical gap={12}>
+                {dataSource.map(item => (
+                  <OrderMobileCard key={item.id} item={item} />
+                ))}
+              </Flex>
+            </div>
+          )}
+        />
+      </Card>
+    </div>
+  );
+};
+
+const PresetStringRender = () => {
+  return (
+    <Flex vertical gap={24}>
+      <div>
+        <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
+          <code>renderMobile="orderCard"</code>：通过 <code>preset({'{ renderMobile }'})</code> 注册名称对应的渲染函数；
+          仅移动端生效，优先级与 function 一致。
+        </div>
+        <TableView dataSource={dataSource} columns={columns} size="large" renderMobile="orderCard" />
+      </div>
+      <div>
+        <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
+          <code>renderMobile="notRegistered"</code>：preset 中未注册时视为未开启，移动端仍显示普通表格。
+        </div>
+        <TableView dataSource={dataSource} columns={columns} renderMobile="notRegistered" />
+      </div>
+    </Flex>
+  );
+};
+
+const BaseExample = () => {
+  return (
+    <Flex vertical gap={32}>
+      <DefaultMobileCards />
+      <CustomMobileRender />
+      <PresetStringRender />
     </Flex>
   );
 };
@@ -829,6 +1295,127 @@ render(<BaseExample />);
 
 ```
 
+- size
+- 单元格 padding 尺寸：默认 8px，small 为 4px，large 为 14px 8px；支持 CSS 变量 --kne-table-cell-padding-* 覆盖
+- _TableView(@kne/current-lib_table-view)[import * as _TableView from "@kne/table-view"],(@kne/current-lib_table-view/dist/index.css),antd(antd)
+
+```jsx
+const { TableView } = _TableView;
+const { Flex, Radio } = antd;
+const { useState } = React;
+
+const dataSource = [
+  {
+    id: 'ORD001',
+    customerName: '深圳市腾讯计算机系统有限公司',
+    contact: '张三',
+    amount: 42500,
+    status: '已完成'
+  },
+  {
+    id: 'ORD002',
+    customerName: '华为技术有限公司',
+    contact: '李四',
+    amount: 85000,
+    status: '处理中'
+  },
+  {
+    id: 'ORD003',
+    customerName: '阿里巴巴集团控股有限公司',
+    contact: '王五',
+    amount: 120000,
+    status: '待发货'
+  }
+];
+
+const columns = [
+  { name: 'id', title: '订单编号', width: 120, renderType: 'small' },
+  { name: 'customerName', title: '客户名称', span: 10, renderType: 'main' },
+  { name: 'contact', title: '联系人', width: 80 },
+  {
+    name: 'amount',
+    title: '订单金额',
+    width: 120,
+    renderType: 'amount',
+    format: 'number-style:decimal-maximumFractionDigits:0-useGrouping:true-suffix:元'
+  },
+  { name: 'status', title: '状态', width: 100 }
+];
+
+const SizeDemo = ({ title, description, size }) => (
+  <div>
+    <div style={{ marginBottom: 8 }}>
+      <strong>{title}</strong>
+      <span style={{ marginLeft: 8, color: '#666', fontSize: 13 }}>{description}</span>
+    </div>
+    <TableView dataSource={dataSource} columns={columns} size={size} />
+  </div>
+);
+
+const InteractiveSize = () => {
+  const [size, setSize] = useState('default');
+  return (
+    <div>
+      <Flex align="center" gap={12} style={{ marginBottom: 12 }}>
+        <strong>切换 size</strong>
+        <Radio.Group
+          optionType="button"
+          value={size}
+          onChange={e => setSize(e.target.value)}
+          options={[
+            { label: 'default (8px)', value: 'default' },
+            { label: 'small (4px)', value: 'small' },
+            { label: 'large (14px 8px)', value: 'large' }
+          ]}
+        />
+      </Flex>
+      <TableView dataSource={dataSource} columns={columns} size={size === 'default' ? undefined : size} />
+    </div>
+  );
+};
+
+const BaseExample = () => {
+  return (
+    <Flex vertical gap={24}>
+      <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: 8, fontSize: 13 }}>
+        <div>
+          <code>size</code> 控制单元格 padding：默认 <code>8px</code>，<code>small</code> 为 <code>4px</code>，
+          <code>large</code> 为 <code>14px 8px</code>
+        </div>
+        <div style={{ marginTop: 4, color: '#666' }}>
+          可通过 CSS 变量覆盖：
+          <code>--kne-table-cell-padding-default</code> /
+          <code>--kne-table-cell-padding-small</code> /
+          <code>--kne-table-cell-padding-large</code>，或直接设
+          <code>--kne-table-cell-padding</code>
+        </div>
+      </div>
+
+      <InteractiveSize />
+
+      <SizeDemo title="default" description="padding: 8px" />
+      <SizeDemo title='size="small"' description="padding: 4px" size="small" />
+      <SizeDemo title='size="large"' description="padding: 14px 8px" size="large" />
+
+      <div>
+        <div style={{ marginBottom: 8 }}>
+          <strong>CSS 变量覆盖</strong>
+          <span style={{ marginLeft: 8, color: '#666', fontSize: 13 }}>
+            --kne-table-cell-padding-default: 12px 16px
+          </span>
+        </div>
+        <div style={{ '--kne-table-cell-padding-default': '12px 16px' }}>
+          <TableView dataSource={dataSource} columns={columns} />
+        </div>
+      </div>
+    </Flex>
+  );
+};
+
+render(<BaseExample />);
+
+```
+
 ### API
 
 ### TableView
@@ -849,10 +1436,40 @@ render(<BaseExample />);
 | empty | ReactNode | `<Empty />` | 无数据时的展示内容 |
 | headerStyle | object | - | 表头自定义样式，仅在 `render` 自定义渲染时作用于 `header` |
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
-| render | function | - | 自定义渲染 `({ header, renderBody, ...others }) => ReactNode`，可拆分表头与表体 |
+| render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
+| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
 | sortRender | function | - | 排序按钮渲染，由 `useSort` 提供 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |
 | className | string | - | 自定义类名 |
+| size | `'small'` \| `'large'` | - | 单元格内边距：默认 `8px`，`small` 为 `4px`，`large` 为 `14px 8px`；可通过 CSS 变量覆盖，见下方说明 |
+
+`renderMobile` 默认卡片 List 行为：
+
+- 每行一张卡片，卡片间距 `12px`，表格外边框隐藏
+- 卡片 padding 跟随 `size`（复用 `--kne-table-cell-padding`）
+- 普通列以「标题 + 内容」纵向排列；`options` 操作列固定在卡片右侧（ButtonGroup）
+- 支持 `rowSelection`（左侧 checkbox / radio）；`allowSelectedAll` 时列表顶部显示全选
+- 为 string 时通过 `preset({ renderMobile: { [name]: renderFn } })` 注册，用法：`renderMobile="orderCard"`
+
+字符串类型说明：
+
+| 值 | 行为 |
+|------|------|
+| `true` | 默认卡片 List |
+| `function` | 自定义渲染，完全接管 |
+| `string` | 从 preset 查找同名渲染函数；找到则等同 function，未找到则移动端回退普通表格 |
+| `false` / 未注册 string | 不开启移动端专用渲染 |
+
+单元格 padding 由 CSS 变量控制，可在外层覆盖：
+
+```css
+.info-page-table {
+  --kne-table-cell-padding-default: 8px; /* 默认 size */
+  --kne-table-cell-padding-small: 4px; /* size="small" */
+  --kne-table-cell-padding-large: 14px 8px; /* size="large" */
+  /* 或直接覆盖当前生效值：--kne-table-cell-padding: 10px; */
+}
+```
 
 #### columns
 
@@ -867,8 +1484,8 @@ render(<BaseExample />);
 | align | string | `'top'` | 垂直对齐方式 |
 | justify | string | `'flex-start'` | 水平对齐方式 |
 | format | string \| function | - | 值格式化，见下方 format 说明 |
-| render | function | - | 自定义单元格渲染 `(value, { column, dataSource, context }) => ReactNode` |
-| renderType | string | - | 声明式列渲染类型，见下方 renderType 说明 |
+| render | function | - | 自定义单元格渲染 `(value, { column, dataSource, context }) => ReactNode`；与 `renderType` 同时存在时优先级最高 |
+| renderType | string | - | 声明式列渲染类型，见下方 renderType 说明；存在 `render` 时仅保留列宽等维度，不参与单元格渲染 |
 | getValueOf | function | - | 自定义取值 `(dataSource, { column, context }) => any`，用于 render 所需复杂数据 |
 | sort | boolean \| object | - | 是否支持排序，`{ single: true }` 为单列排序 |
 | ellipsis | boolean \| object | `false` | 超出省略，基于 antd Typography；`true` 开启省略与 tooltip，`{ showTitle: false }` 关闭 tooltip |
@@ -1006,7 +1623,7 @@ const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, colu
 
 ### renderType
 
-通过 `columns.renderType` 声明列的渲染方式，无需手写 `render`。可与尺寸修饰词组合。
+通过 `columns.renderType` 声明列的渲染方式，无需手写 `render`。可与尺寸修饰词组合。若同时配置了 `columns.render`，则以 `render` 为准（优先级最高），`renderType` 仍可注入 width / min / max 等维度。
 
 #### 内置类型
 
@@ -1086,6 +1703,13 @@ preset({
   renderTypeSize: {
     main: { width: 400, min: 200, max: 600 }
   },
+  renderMobile: {
+    orderCard: ({ renderBody }) => (
+      <div>
+        {renderBody()}
+      </div>
+    )
+  },
   tagTypeColors: {
     custom: '#1890ff'
   },
@@ -1099,6 +1723,7 @@ preset({
 |------|------|------|
 | renderType | object | 自定义 renderType 映射 |
 | renderTypeSize | object | 覆盖内置类型的 width / min / max |
+| renderMobile | object | 注册移动端渲染函数，`renderMobile="name"` 时按名称查找 |
 | tagTypeColors | object | Tag 颜色映射 |
 | statusTypeColors | object | Status 颜色映射 |
 
@@ -1113,6 +1738,8 @@ preset({
 | `getColumnRender(column)` | 获取列的 render 函数 |
 | `getRenderTypeNames()` | 获取所有已注册的 renderType 名称 |
 | `isOptionsColumn(column)` | 判断是否为操作列 |
+| `resolveRenderMobile(renderMobile)` | 解析 renderMobile 配置，string 时从 preset 查找 |
+| `isRenderMobileActive(renderMobile, isMobile)` | 判断当前是否应启用移动端专用渲染 |
 
 ### 列值计算
 

@@ -24,7 +24,7 @@ const normalizeOptionItem = (item, buttonClassName) => {
   };
 };
 
-const options = (value, { column } = {}) => {
+const options = (value, { column, context } = {}) => {
   let list = value;
   let buttonGroupProps = column?.buttonGroup || {};
 
@@ -47,10 +47,11 @@ const options = (value, { column } = {}) => {
   }
 
   const width = parseColumnWidth(column?.width);
+  const isMobileOptions = column?.mobileOptions || context?.mobileOptions;
 
   return (
-    <div className={classnames(wrapperClassName, style['options-column'])} style={width > 0 ? { '--max-width': `${width}px` } : undefined}>
-      <ButtonGroup moreType="link" itemClassName="btn-no-padding" list={normalizedList} {...buttonGroupProps} />
+    <div className={classnames(wrapperClassName, style['options-column'], isMobileOptions && style['options-mobile'])} style={!isMobileOptions && width > 0 ? { '--max-width': `${width}px` } : undefined}>
+      <ButtonGroup moreType="link" itemClassName="btn-no-padding" list={normalizedList} {...buttonGroupProps} {...(isMobileOptions ? { showLength: buttonGroupProps.showLength ?? 0 } : {})} />
     </div>
   );
 };

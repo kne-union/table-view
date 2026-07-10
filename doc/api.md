@@ -16,10 +16,40 @@
 | empty | ReactNode | `<Empty />` | 无数据时的展示内容 |
 | headerStyle | object | - | 表头自定义样式，仅在 `render` 自定义渲染时作用于 `header` |
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
-| render | function | - | 自定义渲染 `({ header, renderBody, ...others }) => ReactNode`，可拆分表头与表体 |
+| render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
+| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
 | sortRender | function | - | 排序按钮渲染，由 `useSort` 提供 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |
 | className | string | - | 自定义类名 |
+| size | `'small'` \| `'large'` | - | 单元格内边距：默认 `8px`，`small` 为 `4px`，`large` 为 `14px 8px`；可通过 CSS 变量覆盖，见下方说明 |
+
+`renderMobile` 默认卡片 List 行为：
+
+- 每行一张卡片，卡片间距 `12px`，表格外边框隐藏
+- 卡片 padding 跟随 `size`（复用 `--kne-table-cell-padding`）
+- 普通列以「标题 + 内容」纵向排列；`options` 操作列固定在卡片右侧（ButtonGroup）
+- 支持 `rowSelection`（左侧 checkbox / radio）；`allowSelectedAll` 时列表顶部显示全选
+- 为 string 时通过 `preset({ renderMobile: { [name]: renderFn } })` 注册，用法：`renderMobile="orderCard"`
+
+字符串类型说明：
+
+| 值 | 行为 |
+|------|------|
+| `true` | 默认卡片 List |
+| `function` | 自定义渲染，完全接管 |
+| `string` | 从 preset 查找同名渲染函数；找到则等同 function，未找到则移动端回退普通表格 |
+| `false` / 未注册 string | 不开启移动端专用渲染 |
+
+单元格 padding 由 CSS 变量控制，可在外层覆盖：
+
+```css
+.info-page-table {
+  --kne-table-cell-padding-default: 8px; /* 默认 size */
+  --kne-table-cell-padding-small: 4px; /* size="small" */
+  --kne-table-cell-padding-large: 14px 8px; /* size="large" */
+  /* 或直接覆盖当前生效值：--kne-table-cell-padding: 10px; */
+}
+```
 
 #### columns
 
@@ -34,8 +64,8 @@
 | align | string | `'top'` | 垂直对齐方式 |
 | justify | string | `'flex-start'` | 水平对齐方式 |
 | format | string \| function | - | 值格式化，见下方 format 说明 |
-| render | function | - | 自定义单元格渲染 `(value, { column, dataSource, context }) => ReactNode` |
-| renderType | string | - | 声明式列渲染类型，见下方 renderType 说明 |
+| render | function | - | 自定义单元格渲染 `(value, { column, dataSource, context }) => ReactNode`；与 `renderType` 同时存在时优先级最高 |
+| renderType | string | - | 声明式列渲染类型，见下方 renderType 说明；存在 `render` 时仅保留列宽等维度，不参与单元格渲染 |
 | getValueOf | function | - | 自定义取值 `(dataSource, { column, context }) => any`，用于 render 所需复杂数据 |
 | sort | boolean \| object | - | 是否支持排序，`{ single: true }` 为单列排序 |
 | ellipsis | boolean \| object | `false` | 超出省略，基于 antd Typography；`true` 开启省略与 tooltip，`{ showTitle: false }` 关闭 tooltip |
@@ -173,7 +203,7 @@ const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, colu
 
 ### renderType
 
-通过 `columns.renderType` 声明列的渲染方式，无需手写 `render`。可与尺寸修饰词组合。
+通过 `columns.renderType` 声明列的渲染方式，无需手写 `render`。可与尺寸修饰词组合。若同时配置了 `columns.render`，则以 `render` 为准（优先级最高），`renderType` 仍可注入 width / min / max 等维度。
 
 #### 内置类型
 
@@ -253,6 +283,13 @@ preset({
   renderTypeSize: {
     main: { width: 400, min: 200, max: 600 }
   },
+  renderMobile: {
+    orderCard: ({ renderBody }) => (
+      <div>
+        {renderBody()}
+      </div>
+    )
+  },
   tagTypeColors: {
     custom: '#1890ff'
   },
@@ -266,6 +303,7 @@ preset({
 |------|------|------|
 | renderType | object | 自定义 renderType 映射 |
 | renderTypeSize | object | 覆盖内置类型的 width / min / max |
+| renderMobile | object | 注册移动端渲染函数，`renderMobile="name"` 时按名称查找 |
 | tagTypeColors | object | Tag 颜色映射 |
 | statusTypeColors | object | Status 颜色映射 |
 
@@ -280,6 +318,8 @@ preset({
 | `getColumnRender(column)` | 获取列的 render 函数 |
 | `getRenderTypeNames()` | 获取所有已注册的 renderType 名称 |
 | `isOptionsColumn(column)` | 判断是否为操作列 |
+| `resolveRenderMobile(renderMobile)` | 解析 renderMobile 配置，string 时从 preset 查找 |
+| `isRenderMobileActive(renderMobile, isMobile)` | 判断当前是否应启用移动端专用渲染 |
 
 ### 列值计算
 

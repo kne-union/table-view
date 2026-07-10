@@ -13,6 +13,17 @@
   margin: 0 -8px;
 }
 
+.options-mobile {
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+
+  &.options {
+    overflow: visible;
+    width: auto;
+  }
+}
+
 .options-column .options-btn:global(.ant-btn) {
   :global(.ant-btn-loading-icon) {
     display: none;
