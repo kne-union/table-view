@@ -1,10 +1,11 @@
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
 import classnames from 'classnames';
 import clone from 'lodash/clone';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import get from 'lodash/get';
 import style from './sort.module.scss';
 import { wrapColumnHeaderTitle } from './columnHeaderTitle';
+import MobileSortToolbar from './TableView/MobileSortToolbar';
 
 const sortArrayToMap = sort =>
   new Map(
@@ -116,6 +117,17 @@ const useSort = (props = {}) => {
     [setSort]
   );
 
+  const mobileSortToolbar = useCallback(
+    ({ columns }) => {
+      const sortableColumns = (columns || []).filter(column => column.sort);
+      if (!sortableColumns.length) {
+        return null;
+      }
+      return <MobileSortToolbar columns={sortableColumns} sort={sort} setMapSort={setMapSort} />;
+    },
+    [sort, setMapSort]
+  );
+
   const sortRender = useCallback(
     ({ single, name }) => {
       const direction = mapSort.get(name);
@@ -163,7 +175,8 @@ const useSort = (props = {}) => {
   return {
     sort,
     setSort,
-    sortRender
+    sortRender,
+    mobileSortToolbar
   };
 };
 

@@ -18,7 +18,8 @@
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
 | render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
 | renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
-| sortRender | function | - | 排序按钮渲染，由 `useSort` 提供 |
+| sortRender | function | - | 排序按钮渲染，由 `useSort` 提供（桌面端表头） |
+| mobileSortToolbar | function | - | 移动端排序工具栏，由 `useSort` 提供；与 `sortRender` 配合传入 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |
 | className | string | - | 自定义类名 |
 | size | `'small'` \| `'large'` | - | 单元格内边距：默认 `8px`，`small` 为 `4px`，`large` 为 `14px 8px`；可通过 CSS 变量覆盖，见下方说明 |
@@ -28,7 +29,7 @@
 - 每行一张卡片，卡片间距 `12px`，表格外边框隐藏
 - 卡片 padding 跟随 `size`（复用 `--kne-table-cell-padding`）
 - 普通列以「标题 + 内容」纵向排列；`options` 操作列固定在卡片右侧（ButtonGroup）
-- 支持 `rowSelection`（左侧 checkbox / radio）；`allowSelectedAll` 时列表顶部显示全选
+- 支持 `rowSelection`（左侧 checkbox / radio）；开启 `allowSelectedAll` 或排序（传入 `mobileSortToolbar`）时，卡片列表顶部显示工具栏：**全选居左**、**排序居右**（可选择排序列、切换升序/降序；再次点击当前方向或下拉选「取消排序」可清除）
 - 为 string 时通过 `preset({ renderMobile: { [name]: renderFn } })` 注册，用法：`renderMobile="orderCard"`
 
 字符串类型说明：
@@ -176,7 +177,8 @@ const { selectedRowKeys, selectedRows, getRowSelection, clearSelectedRows } = Ta
 |------|------|------|
 | sort | array | 当前排序配置 |
 | setSort | function | 设置排序 |
-| sortRender | function | `({ name, single }) => ReactNode`，传给 TableView |
+| sortRender | function | `({ name, single }) => ReactNode`，传给 TableView 表头 |
+| mobileSortToolbar | function | `({ columns }) => ReactNode`，传给 TableView 移动端工具栏右侧 |
 
 #### columns.sort
 
@@ -193,10 +195,10 @@ const { selectedRowKeys, selectedRows, getRowSelection, clearSelectedRows } = Ta
 #### 示例
 
 ```jsx
-const { sort, sortRender } = TableView.useSort({ onSortChange: console.log });
+const { sort, sortRender, mobileSortToolbar } = TableView.useSort({ onSortChange: console.log });
 const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, columns), [sort, dataSource]);
 
-<TableView dataSource={sortedData} columns={columns} sortRender={sortRender} />;
+<TableView dataSource={sortedData} columns={columns} sortRender={sortRender} mobileSortToolbar={mobileSortToolbar} />;
 ```
 
 完整示例见文档 `useSort`。

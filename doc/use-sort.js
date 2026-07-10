@@ -56,7 +56,7 @@ const SortState = ({ sort }) => (
 );
 
 const SingleSortExample = () => {
-  const { sort, sortRender } = TableView.useSort({
+  const { sort, sortRender, mobileSortToolbar } = TableView.useSort({
     onSortChange: value => console.log('单列排序变更:', value)
   });
   const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, columns), [sort]);
@@ -65,13 +65,13 @@ const SingleSortExample = () => {
     <div>
       <div style={{ marginBottom: 8, color: '#666' }}>单列排序（订单编号 sort: {'{ single: true }'}）</div>
       <SortState sort={sort} />
-      <TableView dataSource={sortedData} columns={columns} sortRender={sortRender} />
+      <TableView dataSource={sortedData} columns={columns} sortRender={sortRender} mobileSortToolbar={mobileSortToolbar} renderMobile />
     </div>
   );
 };
 
 const MultiSortExample = () => {
-  const { sort, sortRender } = TableView.useSort({
+  const { sort, sortRender, mobileSortToolbar } = TableView.useSort({
     defaultSort: [{ name: 'orderDate', sort: 'DESC' }],
     onSortChange: value => console.log('多列排序变更:', value)
   });
@@ -81,7 +81,7 @@ const MultiSortExample = () => {
     <div>
       <div style={{ marginBottom: 8, color: '#666' }}>多列排序（默认按下单日期降序，金额/日期支持多列排序）</div>
       <SortState sort={sort} />
-      <TableView dataSource={sortedData} columns={columns} sortRender={sortRender} />
+      <TableView dataSource={sortedData} columns={columns} sortRender={sortRender} mobileSortToolbar={mobileSortToolbar} renderMobile />
     </div>
   );
 };

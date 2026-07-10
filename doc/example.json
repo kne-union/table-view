@@ -60,7 +60,7 @@
     },
     {
       "title": "renderMobile",
-      "description": "移动端专用渲染：true 为默认卡片 List；function 完全接管；string 从 preset 按名称查找渲染函数",
+      "description": "移动端专用渲染：true 为默认卡片 List；function 完全接管；string 从 preset 按名称查找；支持 mobileSortToolbar 排序工具栏",
       "code": "./render-mobile.js",
       "scope": [
         {
