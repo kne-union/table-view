@@ -12,7 +12,12 @@ const useSelectedRow = options => {
   const setSelectedRowKeys = useCallback(
     (keys, dataSource = []) => {
       const keySet = new Set(keys || []);
-      setSelectedRows((dataSource || []).filter(item => keySet.has(getRowId(item))));
+      setSelectedRows(prev => {
+        const kept = prev.filter(item => keySet.has(getRowId(item)));
+        const keptKeySet = new Set(kept.map(getRowId));
+        const added = (dataSource || []).filter(item => keySet.has(getRowId(item)) && !keptKeySet.has(getRowId(item)));
+        return [...kept, ...added];
+      });
     },
     [getRowId]
   );

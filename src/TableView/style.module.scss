@@ -175,6 +175,13 @@
   overflow: visible;
 }
 
+.is-mobile-render {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
 .mobile-card-list {
   display: flex;
   flex-direction: column;

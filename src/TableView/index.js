@@ -204,11 +204,11 @@ const TableView = p => {
 
   if (useMobileRender) {
     if (typeof resolvedRenderMobile === 'function') {
-      return resolvedRenderMobile({ ...others, header: null, renderBody: renderMobileCardBody });
+      return <div className={classnames(style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>{resolvedRenderMobile({ ...others, header: null, renderBody: renderMobileCardBody })}</div>;
     }
 
     return (
-      <div {...others} className={classnames(style['table'], style['tableView'], style['is-mobile-card'], 'info-page-table', sizeClassName, className)}>
+      <div {...others} className={classnames(style['table'], style['tableView'], style['is-mobile-card'], style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>
         {renderMobileCardBody(dataSource, context)}
       </div>
     );

@@ -16,17 +16,26 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getId, mobileSortToolbar,
 
   const handleSelectAllChange = e => {
     const checked = e.target.checked;
-    if (!checked) {
-      typeof rowSelection.onIsSelectAllChange === 'function' ? rowSelection.onIsSelectAllChange(false) : rowSelection.onChange([]);
-      return;
-    }
     if (typeof rowSelection.onIsSelectAllChange === 'function') {
-      rowSelection.onIsSelectAllChange(true);
+      rowSelection.onIsSelectAllChange(checked);
       return;
     }
-    if (dataSource && dataSource.length > 0) {
-      rowSelection.onChange(dataSource.map(getId));
+    const pageKeys = (dataSource || []).map(getId);
+    const existing = rowSelection.selectedRowKeys || [];
+    if (!checked) {
+      rowSelection.onChange(existing.filter(key => pageKeys.indexOf(key) === -1));
+      return;
     }
+    if (!dataSource || dataSource.length === 0) {
+      return;
+    }
+    const merged = existing.slice();
+    pageKeys.forEach(key => {
+      if (merged.indexOf(key) === -1) {
+        merged.push(key);
+      }
+    });
+    rowSelection.onChange(merged);
   };
 
   return (
