@@ -17,7 +17,7 @@
 | headerStyle | object | - | 表头自定义样式，仅在 `render` 自定义渲染时作用于 `header` |
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
 | render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
-| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
+| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时完全接管渲染，回调参数含 `dataSource` / `columns` / `rowKey` / `rowSelection` / `context` / `empty` / `renderBody`（`renderBody` 可渲染默认卡片 List）；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
 | sortRender | function | - | 排序按钮渲染，由 `useSort` 提供（桌面端表头） |
 | mobileSortToolbar | function | - | 移动端排序工具栏，由 `useSort` 提供；与 `sortRender` 配合传入 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |

@@ -194,17 +194,31 @@ const TableView = p => {
     );
   };
 
-  const renderBody = (dataSource, context) => {
-    if (!dataSource || dataSource.length === 0) {
+  const renderBody = (nextDataSource = dataSource, nextContext = context) => {
+    if (!nextDataSource || nextDataSource.length === 0) {
       return <div className={style['empty']}>{empty}</div>;
     }
 
-    return <div className={classnames('info-page-table-body')}>{renderGrid(dataSource, context)}</div>;
+    return <div className={classnames('info-page-table-body')}>{renderGrid(nextDataSource, nextContext)}</div>;
   };
 
   if (useMobileRender) {
     if (typeof resolvedRenderMobile === 'function') {
-      return <div className={classnames(style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>{resolvedRenderMobile({ ...others, header: null, renderBody: renderMobileCardBody })}</div>;
+      return (
+        <div className={classnames(style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>
+          {resolvedRenderMobile({
+            ...others,
+            header: null,
+            renderBody: renderMobileCardBody,
+            dataSource,
+            columns: layoutColumns,
+            rowKey,
+            rowSelection,
+            context,
+            empty
+          })}
+        </div>
+      );
     }
 
     return (

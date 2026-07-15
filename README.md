@@ -647,7 +647,7 @@ const columns = [
 
 preset({
   renderMobile: {
-    orderCard: ({ renderBody }) => {
+    orderCard: ({ renderBody, dataSource = [] }) => {
       const totalAmount = dataSource.reduce((sum, item) => sum + item.amount, 0);
       return (
         <div
@@ -905,6 +905,8 @@ const MobileSortWithSelectAll = () => {
 const CustomMobileRender = () => {
   const [selectKeys, setSelectKeys] = useState([]);
   const [isSelectedAll, setIsSelectedAll] = useState(false);
+  const { sort, sortRender, mobileSortToolbar } = TableView.useSort({});
+  const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, columns), [sort]);
   const totalAmount = dataSource.reduce((sum, item) => sum + item.amount, 0);
   const selectedAmount = selectKeys.reduce((sum, id) => sum + (dataSource.find(d => d.id === id)?.amount || 0), 0);
   const checkedAll = isSelectedAll || (dataSource.length > 0 && selectKeys.length === dataSource.length);
@@ -930,6 +932,7 @@ const CustomMobileRender = () => {
     <div>
       <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
         <code>renderMobile</code> 为 function 时完全接管渲染，可自定义主次关系卡片：客户名称作主信息，状态/编号/联系人作次要信息。
+        排序：用 <code>TableView.useSort</code> 得到 <code>mobileSortToolbar</code>，在自定义布局里配合回调参数 <code>columns</code> 渲染；数据用 <code>sortDataSource</code> 排序。
         桌面端仍走 <code>render</code>，样式与普通 TableView 一致。
       </div>
       <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
@@ -952,10 +955,11 @@ const CustomMobileRender = () => {
           <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>桌面端 render 自定义外层</span>
         </Flex>
         <TableView
-          dataSource={dataSource}
+          dataSource={sortedData}
           columns={columns}
-          render={({ renderBody }) => <div style={{ overflowX: 'auto' }}>{renderBody(dataSource)}</div>}
-          renderMobile={() => (
+          sortRender={sortRender}
+          render={({ renderBody }) => <div style={{ overflowX: 'auto' }}>{renderBody()}</div>}
+          renderMobile={({ dataSource: mobileList = [], columns: mobileColumns }) => (
             <div
               style={{
                 borderRadius: 12,
@@ -971,13 +975,14 @@ const CustomMobileRender = () => {
                   </Tag>
                 </Flex>
                 <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
-                  {dataSource.length} 笔 · 合计 ¥{totalAmount.toLocaleString()}
+                  {mobileList.length} 笔 · 合计 ¥{mobileList.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
                 </div>
               </div>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'space-between',
                   gap: 6,
                   marginBottom: 12,
                   padding: '4px 8px',
@@ -986,11 +991,14 @@ const CustomMobileRender = () => {
                   fontSize: 12
                 }}
               >
-                <Checkbox checked={checkedAll} indeterminate={indeterminate} onChange={handleSelectAllChange} />
-                <span>全选</span>
+                <Flex align="center" gap={6}>
+                  <Checkbox checked={checkedAll} indeterminate={indeterminate} onChange={handleSelectAllChange} />
+                  <span>全选</span>
+                </Flex>
+                {mobileSortToolbar({ columns: mobileColumns })}
               </div>
               <Flex vertical gap={12}>
-                {dataSource.map(item => {
+                {mobileList.map(item => {
                   const isChecked = selectKeys.indexOf(item.id) > -1;
                   return (
                     <OrderMobileCard
@@ -1593,7 +1601,7 @@ render(<BaseExample />);
 | headerStyle | object | - | 表头自定义样式，仅在 `render` 自定义渲染时作用于 `header` |
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
 | render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
-| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
+| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时完全接管渲染，回调参数含 `dataSource` / `columns` / `rowKey` / `rowSelection` / `context` / `empty` / `renderBody`（`renderBody` 可渲染默认卡片 List）；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
 | sortRender | function | - | 排序按钮渲染，由 `useSort` 提供（桌面端表头） |
 | mobileSortToolbar | function | - | 移动端排序工具栏，由 `useSort` 提供；与 `sortRender` 配合传入 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |
