@@ -17,12 +17,37 @@
 | headerStyle | object | - | 表头自定义样式，仅在 `render` 自定义渲染时作用于 `header` |
 | onRowSelect | function | - | 行点击回调 `(item, { columns, dataSource }) => void` |
 | render | function | - | 自定义渲染 `({ header, renderBody }) => ReactNode`，可拆分表头与表体；返回值会包在默认 `.info-page-table` 容器内，单元格 padding 与普通 TableView 一致 |
-| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时签名与 `render` 一致，且优先级高于 `render`，完全接管渲染；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
+| renderMobile | boolean \| function \| string | - | 仅移动端生效。`true` 使用默认卡片 List；为 function 时完全接管渲染（见下方回调参数）；为 string 时从 `preset({ renderMobile })` 按名称取渲染函数，未注册则视为未开启 |
 | sortRender | function | - | 排序按钮渲染，由 `useSort` 提供（桌面端表头） |
-| mobileSortToolbar | function | - | 移动端排序工具栏，由 `useSort` 提供；与 `sortRender` 配合传入 |
+| mobileSortToolbar | function | - | 移动端排序工具栏，由 `useSort` 提供；与 `sortRender` 配合传入 TableView，由 `renderToolbar` / 默认卡片复用 |
 | context | object | - | 列渲染上下文，会传入 `render`、`getValueOf` 等回调 |
 | className | string | - | 自定义类名 |
 | size | `'small'` \| `'large'` | - | 单元格内边距：默认 `8px`，`small` 为 `4px`，`large` 为 `14px 8px`；可通过 CSS 变量覆盖，见下方说明 |
+
+`renderMobile` 为 function 时，TableView 会传入已接好 `rowSelection` / `mobileSortToolbar` 的能力，自定义布局只需选用，不必自己实现全选或排序：
+
+| 回调参数 | 说明 |
+|------|------|
+| `dataSource` | 当前页数据 |
+| `columns` | 布局后的列配置 |
+| `rowKey` / `rowSelection` / `context` / `empty` | 与 TableView 一致 |
+| `renderBody` | 渲染默认移动端卡片 List（含顶部工具栏） |
+| `renderToolbar` | 渲染组件级工具栏（全选居左、排序居右）；可自由决定摆放位置 |
+| `getRowKey(item)` | 按 `rowKey` 取行 key |
+| `getSelectionProps(item)` | 返回 `{ checked, disabled, onChange }`，可直接绑到卡片上的 Checkbox / Radio |
+| `onSelectionChange` | 行选择切换，签名与内部逻辑一致 |
+
+```jsx
+renderMobile={({ dataSource, renderToolbar, getSelectionProps, getRowKey }) => (
+  <>
+    {renderToolbar()}
+    {dataSource.map(item => {
+      const selection = getSelectionProps(item);
+      return <MyCard key={getRowKey(item)} item={item} {...selection} />;
+    })}
+  </>
+)}
+```
 
 `renderMobile` 默认卡片 List 行为：
 

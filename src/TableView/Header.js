@@ -53,8 +53,8 @@ export const renderHeaderGridCells = ({ dataSource, columns, rowKey, rowSelectio
                       rowSelection.onIsSelectAllChange(checked);
                       return;
                     }
-                    const getId = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
-                    const pageKeys = (dataSource || []).map(getId);
+                    const getRowKey = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
+                    const pageKeys = (dataSource || []).map(getRowKey);
                     const existing = rowSelection.selectedRowKeys || [];
                     if (!checked) {
                       rowSelection.onChange(existing.filter(key => pageKeys.indexOf(key) === -1));

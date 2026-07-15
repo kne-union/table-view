@@ -2,7 +2,7 @@ import React from 'react';
 import { Checkbox } from 'antd';
 import style from './style.module.scss';
 
-const MobileCardToolbar = ({ rowSelection, dataSource, getId, mobileSortToolbar, columns }) => {
+const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortToolbar, columns }) => {
   const showSelectAll = rowSelection?.type === 'checkbox' && rowSelection.allowSelectedAll;
   const sortNode = typeof mobileSortToolbar === 'function' ? mobileSortToolbar({ columns }) : null;
   const showSort = !!sortNode;
@@ -11,7 +11,7 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getId, mobileSortToolbar,
     return null;
   }
 
-  const checkedAll = showSelectAll && (rowSelection.isSelectedAll || (dataSource && dataSource.every(item => rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(getId(item)) > -1)));
+  const checkedAll = showSelectAll && (rowSelection.isSelectedAll || (dataSource && dataSource.every(item => rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(getRowKey(item)) > -1)));
   const indeterminate = showSelectAll && rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.length > 0 && !checkedAll;
 
   const handleSelectAllChange = e => {
@@ -20,7 +20,7 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getId, mobileSortToolbar,
       rowSelection.onIsSelectAllChange(checked);
       return;
     }
-    const pageKeys = (dataSource || []).map(getId);
+    const pageKeys = (dataSource || []).map(getRowKey);
     const existing = rowSelection.selectedRowKeys || [];
     if (!checked) {
       rowSelection.onChange(existing.filter(key => pageKeys.indexOf(key) === -1));
