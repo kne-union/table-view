@@ -5,19 +5,18 @@ import get from 'lodash/get';
 import computeColumnsValue, { computeDisplay } from '../computeColumnsValue';
 import { isOptionsColumn } from '../columnRenderType';
 import { renderCellContent } from '../renderCellContent';
-import MobileCardToolbar from './MobileCardToolbar';
 import style from './style.module.scss';
 
-const MobileCardList = ({ dataSource, columns, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, context, onRowSelect, onSelectionChange, mobileSortToolbar }) => {
-  const getId = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
+const MobileCardList = ({ dataSource, columns, rowKey, rowSelection, valueIsEmpty, emptyIsPlaceholder, placeholder, context, onRowSelect, onSelectionChange, toolbar }) => {
+  const getRowKey = item => get(item, typeof rowKey === 'function' ? rowKey(item) : rowKey);
   const fieldColumns = columns.filter(column => !isOptionsColumn(column));
   const actionColumns = columns.filter(column => isOptionsColumn(column));
 
   return (
     <div className={classnames(style['mobile-card-list'], 'info-page-table-mobile-card-list')}>
-      <MobileCardToolbar rowSelection={rowSelection} dataSource={dataSource} getId={getId} mobileSortToolbar={mobileSortToolbar} columns={columns} />
+      {toolbar}
       {dataSource.map(item => {
-        const id = getId(item);
+        const id = getRowKey(item);
         const isChecked = rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(id) > -1;
         const columnsValue = computeColumnsValue({
           columns,
