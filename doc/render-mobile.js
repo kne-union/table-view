@@ -279,7 +279,7 @@ const MobileSortExample = () => {
       <div>
         <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           移动端排序：列配置 <code>sort: true</code>，配合 <code>TableView.useSort</code> 传入 <code>mobileSortToolbar</code>。
-          工具栏居右，可选择排序列并切换升序 / 降序；再次点击当前方向或下拉选「取消排序」可清除。数据需自行用 <code>sortDataSource</code> 排序。
+          工具栏居右，下拉选择排序列，方向为单图标，点击按「降序 → 升序 → 取消」循环（与 PC 端列头排序一致）；也可在下拉选「取消排序」清除。数据需自行用 <code>sortDataSource</code> 排序。
         </div>
         <SortState sort={sort} />
         <TableView

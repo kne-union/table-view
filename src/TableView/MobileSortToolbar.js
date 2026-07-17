@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Dropdown } from 'antd';
-import { CheckOutlined, DownOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CaretUpOutlined, CheckOutlined, DownOutlined } from '@ant-design/icons';
 import classnames from 'classnames';
 import clone from 'lodash/clone';
 import { usePopupContainer } from '@kne/responsive-utils';
@@ -58,16 +58,23 @@ const MobileSortToolbar = ({ columns, sort, setMapSort }) => {
     applySort(name, activeName === name && activeEntry?.sort ? activeEntry.sort : 'DESC');
   };
 
-  const handleDirectionChange = direction => {
-    if (activeName && activeDirection === direction) {
-      clearSort();
-      return;
+  // 与 PC 端 sortRender 一致：DESC -> ASC -> 取消
+  const handleDirectionCycle = () => {
+    if (activeName) {
+      if (activeDirection === 'DESC') {
+        applySort(activeName, 'ASC');
+        return;
+      }
+      if (activeDirection === 'ASC') {
+        clearSort();
+        return;
+      }
     }
     const targetName = activeName || columns[0]?.name;
     if (!targetName) {
       return;
     }
-    applySort(targetName, direction);
+    applySort(targetName, 'DESC');
   };
 
   const columnMenuItems = columns.map(column => ({
@@ -117,28 +124,18 @@ const MobileSortToolbar = ({ columns, sort, setMapSort }) => {
           <span className={style['mobile-card-sort-field-text']}>{activeTitle}</span>
         </Button>
       </Dropdown>
-      <div className={style['mobile-card-sort-direction']} role="group" aria-label="排序方向">
-        <Button
-          size="small"
-          type="text"
-          className={classnames(style['mobile-card-sort-direction-btn'], {
+      <span className={style['mobile-card-sort-direction']} role="button" aria-label="排序方向" onClick={handleDirectionCycle}>
+        <CaretUpOutlined
+          className={classnames(style['mobile-card-sort-icon'], style['mobile-card-sort-icon-up'], {
             [style['is-active']]: activeDirection === 'ASC'
           })}
-          onClick={() => handleDirectionChange('ASC')}
-        >
-          升序
-        </Button>
-        <Button
-          size="small"
-          type="text"
-          className={classnames(style['mobile-card-sort-direction-btn'], {
+        />
+        <CaretDownOutlined
+          className={classnames(style['mobile-card-sort-icon'], style['mobile-card-sort-icon-down'], {
             [style['is-active']]: activeDirection === 'DESC'
           })}
-          onClick={() => handleDirectionChange('DESC')}
-        >
-          降序
-        </Button>
-      </div>
+        />
+      </span>
     </div>
   );
 };

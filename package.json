@@ -1,6 +1,6 @@
 {
   "name": "@kne/table-view",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "A React table view component with column rendering, computed columns, formatting and sorting utilities",
   "syntax": {
     "esmodules": true

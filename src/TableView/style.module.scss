@@ -136,8 +136,9 @@
 
 .col-content {
   padding: var(--kne-table-cell-padding);
+  margin-inline: var(--kne-table-cell-margin, 4px);
   display: block;
-  width: 100%;
+  width: calc(100% - var(--kne-table-cell-margin, 4px) * 2);
   min-width: 0;
   box-sizing: border-box;
 }
@@ -364,45 +365,39 @@
   font-size: 12px;
 }
 
+// 单图标排序方向，交互与 PC 端 sortRender 一致（DESC -> ASC -> 取消）
 .mobile-card-sort-direction {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 2px;
-  border: none;
+  width: 24px;
+  height: 24px;
   border-radius: 12px;
   background: #fff;
+  cursor: pointer;
+  user-select: none;
 }
 
-.mobile-card-sort-direction-btn {
-  min-width: 40px;
-  height: 20px !important;
-  padding: 0 8px !important;
-  border: none !important;
-  border-radius: 10px !important;
-  background: transparent !important;
-  color: var(--font-color-grey-1, rgba(0, 0, 0, 0.65)) !important;
-  font-size: 12px !important;
-  line-height: 20px !important;
-  box-shadow: none !important;
+.mobile-card-sort-icon {
+  display: block;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.25);
+  transition: color 200ms;
 
   &.is-active {
-    color: var(--primary-color, #1677ff) !important;
-    background: var(--primary-color-1, #e6f4ff) !important;
-    font-weight: 500;
+    color: var(--primary-color, #1677ff);
   }
+}
 
-  &:hover,
-  &:active {
-    color: var(--font-color-grey-1, rgba(0, 0, 0, 0.65)) !important;
-    background: transparent !important;
-  }
+.mobile-card-sort-icon-up {
+  margin-bottom: -2px;
+}
 
-  &.is-active:hover,
-  &.is-active:active {
-    color: var(--primary-color, #1677ff) !important;
-    background: var(--primary-color-1, #e6f4ff) !important;
-  }
+.mobile-card-sort-icon-down {
+  margin-top: -2px;
 }
 
 .mobile-card-sort-menu-item {
@@ -417,6 +412,9 @@
   flex: 1;
   min-width: 0;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-card-sort-menu-check {
@@ -429,6 +427,7 @@
 .mobile-card-sort-dropdown {
   :global(.ant-dropdown-menu) {
     min-width: 128px;
+    max-width: min(240px, 70vw);
     padding: 4px;
     border-radius: 8px;
   }
