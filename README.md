@@ -858,7 +858,7 @@ const MobileSortExample = () => {
       <div>
         <div style={{ marginBottom: 12, color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           移动端排序：列配置 <code>sort: true</code>，配合 <code>TableView.useSort</code> 传入 <code>mobileSortToolbar</code>。
-          工具栏居右，可选择排序列并切换升序 / 降序；再次点击当前方向或下拉选「取消排序」可清除。数据需自行用 <code>sortDataSource</code> 排序。
+          工具栏居右，下拉选择排序列，方向为单图标，点击按「降序 → 升序 → 取消」循环（与 PC 端列头排序一致）；也可在下拉选「取消排序」清除。数据需自行用 <code>sortDataSource</code> 排序。
         </div>
         <SortState sort={sort} />
         <TableView
@@ -1677,7 +1677,7 @@ renderMobile={({ dataSource, renderToolbar, getSelectionProps, getRowKey }) => (
 - 每行一张卡片，卡片间距 `12px`，表格外边框隐藏
 - 卡片 padding 跟随 `size`（复用 `--kne-table-cell-padding`）
 - 普通列以「标题 + 内容」纵向排列；`options` 操作列固定在卡片右侧（ButtonGroup）
-- 支持 `rowSelection`（左侧 checkbox / radio）；开启 `allowSelectedAll` 或排序（传入 `mobileSortToolbar`）时，卡片列表顶部显示工具栏：**全选居左**、**排序居右**（可选择排序列、切换升序/降序；再次点击当前方向或下拉选「取消排序」可清除）
+- 支持 `rowSelection`（左侧 checkbox / radio）；开启 `allowSelectedAll` 或排序（传入 `mobileSortToolbar`）时，卡片列表顶部显示工具栏：**全选居左**、**排序居右**（下拉选择排序列，方向为单图标，点击按「降序 → 升序 → 取消」循环，与 PC 端列头排序一致；也可在下拉选「取消排序」清除）
 - 为 string 时通过 `preset({ renderMobile: { [name]: renderFn } })` 注册，用法：`renderMobile="orderCard"`
 
 字符串类型说明：

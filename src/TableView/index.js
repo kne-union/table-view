@@ -51,11 +51,13 @@ const TableView = p => {
     sortRender,
     mobileSortToolbar,
     size,
+    forceCardRender,
     ...others
   } = props;
   const sizeClassName = size === 'small' ? style['is-size-small'] : size === 'large' ? style['is-size-large'] : null;
   const resolvedRenderMobile = useMemo(() => resolveRenderMobile(renderMobile), [renderMobile]);
-  const useMobileRender = isRenderMobileActive(renderMobile, isMobile);
+  // forceCardRender 可在非移动端强制走卡片渲染（如 PC 卡片模式）
+  const useMobileRender = forceCardRender ? resolvedRenderMobile === true || typeof resolvedRenderMobile === 'function' : isRenderMobileActive(renderMobile, isMobile);
   const columns = useMemo(() => resolveColumns(columnsProp), [columnsProp]);
   const layoutColumns = useMemo(() => getLayoutColumns(columns), [columns]);
   const defaultSpan = useMemo(() => {
