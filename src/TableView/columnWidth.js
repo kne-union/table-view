@@ -2,6 +2,26 @@ import { resolveColumnDimensions } from '../columnRenderType';
 
 export const SELECTION_CHECKBOX_WIDTH = 48;
 export const SELECTION_RADIO_WIDTH = 48;
+export const TREE_EXPAND_ICON_WIDTH = 18;
+export const TREE_SELECTION_CONTROL_WIDTH = 16;
+export const TREE_SELECTION_GAP = 4;
+export const TREE_SELECTION_INLINE_PADDING = 8;
+
+export const getTreeSelectionColumnWidth = ({ indentSize = 16, maxLevel = 0, rowSelection, isTree } = {}) => {
+  if (!isTree) {
+    if (rowSelection?.type === 'checkbox') {
+      return SELECTION_CHECKBOX_WIDTH;
+    }
+    if (rowSelection?.type === 'radio') {
+      return SELECTION_RADIO_WIDTH;
+    }
+    return 0;
+  }
+  // 紧凑宽度：缩进 + 三角(18) +（有勾选时）间距 + 勾选控件 + 左右 padding
+  const hasSelection = rowSelection?.type === 'checkbox' || rowSelection?.type === 'radio';
+  const selectionExtra = hasSelection ? TREE_SELECTION_GAP + TREE_SELECTION_CONTROL_WIDTH : 0;
+  return indentSize * maxLevel + TREE_EXPAND_ICON_WIDTH + selectionExtra + TREE_SELECTION_INLINE_PADDING;
+};
 
 export const parseColumnWidth = width => {
   if (width == null) {
@@ -62,14 +82,13 @@ export const getColumnTrackSize = (column, { defaultSpan, colsSize, isLastColumn
   return minWidth > 0 ? `minmax(${minWidth}px, ${span}fr)` : `minmax(0, ${span}fr)`;
 };
 
-export const getGridTemplateColumns = (columns, { defaultSpan, colsSize, rowSelection } = {}) => {
+export const getGridTemplateColumns = (columns, { defaultSpan, colsSize, rowSelection, isTree, indentSize, maxLevel } = {}) => {
   const tracks = [];
   const lastColumnIndex = columns.length - 1;
+  const treeSelectionWidth = getTreeSelectionColumnWidth({ indentSize, maxLevel, rowSelection, isTree });
 
-  if (rowSelection?.type === 'checkbox') {
-    tracks.push(`${SELECTION_CHECKBOX_WIDTH}px`);
-  } else if (rowSelection?.type === 'radio') {
-    tracks.push(`${SELECTION_RADIO_WIDTH}px`);
+  if (treeSelectionWidth > 0) {
+    tracks.push(`${treeSelectionWidth}px`);
   }
 
   columns.forEach((column, index) => {

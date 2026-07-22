@@ -11,5 +11,7 @@ export { default as computeColumnsValue, computeDisplay, computeColumnsDisplay }
 export { default as formatView, defaultFormat, calcArgs } from './formatView';
 export { renderCellContent, getColumnEllipsis } from './renderCellContent';
 export { resolveRenderMobile, isRenderMobileActive } from './resolveRenderMobile';
-export { parseColumnWidth, getColumnLayout, getGridTemplateColumns, hasColumnSpan, hasColumnWidth } from './TableView/columnWidth';
+export { parseColumnWidth, getColumnLayout, getGridTemplateColumns, getTreeSelectionColumnWidth, hasColumnSpan, hasColumnWidth, SELECTION_CHECKBOX_WIDTH, SELECTION_RADIO_WIDTH, TREE_EXPAND_ICON_WIDTH } from './TableView/columnWidth';
 export { wrapColumnHeaderTitle } from './columnHeaderTitle';
+export { isTreeDataType, buildTreeFromList, normalizeTreeData, flattenAllTree, flattenVisibleTree, collectExpandableKeys, toggleExpandedKey, nodeCanExpand, mergeTreeChildren, getTreeBreadcrumbItems } from './treeData';
+export { CHECK_RELATION, resolveCheckRelation, buildTreeKeyMaps, normalizeParentKeys, toggleTreeCheck, getTreeCheckState, buildSelectAllKeys, buildClearSelectAllKeys, isAllTreeSelected, hasAnyTreeSelected } from './treeCheck';
