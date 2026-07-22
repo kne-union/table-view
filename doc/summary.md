@@ -9,6 +9,7 @@
 - 基于 24 栅格的列宽分配（`span` 属性）与固定宽度（`width`）
 - CSS Grid 自动布局，内容超出时自动撑开
 - 行选择（checkbox 多选 / radio 单选）
+- 树形数据（`dataType`: `list` / `tree` / `treeList`），支持展开收起、层级缩进与全选含收起子行
 - 行点击事件与自定义 `render` 拆分表头/表体
 - 通过 `sortRender` 配合 `useSort` 实现表头排序
 
@@ -36,11 +37,11 @@
 
 #### 列渲染优先级
 
-| 优先级 | 来源 | 说明 |
-|--------|------|------|
-| 1 | `column.render` | 自定义函数，**最高优先级**；存在时不再走 `renderType` 内置渲染 |
-| 2 | `renderType` | 声明式类型（`main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等），由 `resolveColumn` 注入对应 `render` 与列宽维度 |
-| 3 | 原始值 | 无 `render` 且无有效 `renderType` 时，直接展示格式化后的 `value` |
+| 优先级 | 来源            | 说明                                                                                                                                             |
+| ------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1      | `column.render` | 自定义函数，**最高优先级**；存在时不再走 `renderType` 内置渲染                                                                                   |
+| 2      | `renderType`    | 声明式类型（`main`、`amount`、`tag`、`status`、`tagList`、`list`、`options`、`description` 等），由 `resolveColumn` 注入对应 `render` 与列宽维度 |
+| 3      | 原始值          | 无 `render` 且无有效 `renderType` 时，直接展示格式化后的 `value`                                                                                 |
 
 `render` 与 `renderType` 可同时配置：`renderType` 仍负责注入 `width` / `min` / `max` / `ellipsis` 等布局维度，仅单元格内容由 `render` 覆盖。
 
@@ -50,12 +51,12 @@
 
 移动端判断统一使用 `@kne/responsive-utils` 的 `useIsMobile()`（断点 768px）。仅当 `isRenderMobileActive(renderMobile, isMobile)` 为 true 时启用移动端专用渲染，桌面端始终走 Grid 或 `render`。
 
-| `renderMobile` 值 | 行为 |
-|-------------------|------|
-| `true` | 默认卡片 List（`MobileCardList`）：每行一张卡片，普通列纵向「标题 + 内容」，`options` 操作列固定右侧 |
-| `function` | 签名与 `render` 一致 `({ header, renderBody, ...props }) => ReactNode`，**完全接管**移动端渲染，优先级高于 `render`；可调用 `renderBody()` 复用默认卡片 |
-| `string` | 从 `preset({ renderMobile: { [name]: fn } })` 按名称查找；找到等同 function，**未注册则视为未开启**，移动端回退普通表格 |
-| 未设置 / `false` / 未注册 string | 不开启移动端专用渲染，移动端仍显示 Grid 表格 |
+| `renderMobile` 值                | 行为                                                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `true`                           | 默认卡片 List（`MobileCardList`）：每行一张卡片，普通列纵向「标题 + 内容」，`options` 操作列固定右侧                                                    |
+| `function`                       | 签名与 `render` 一致 `({ header, renderBody, ...props }) => ReactNode`，**完全接管**移动端渲染，优先级高于 `render`；可调用 `renderBody()` 复用默认卡片 |
+| `string`                         | 从 `preset({ renderMobile: { [name]: fn } })` 按名称查找；找到等同 function，**未注册则视为未开启**，移动端回退普通表格                                 |
+| 未设置 / `false` / 未注册 string | 不开启移动端专用渲染，移动端仍显示 Grid 表格                                                                                                            |
 
 默认卡片 List 细节：
 
@@ -72,14 +73,19 @@
 
 ### 工具函数
 
-| 导出项 | 说明 |
-|--------|------|
-| `computeColumnsValue` / `computeDisplay` | 列值计算与展示渲染 |
-| `formatView` / `defaultFormat` | 声明式值格式化 |
-| `resolveColumns` / `resolveColumn` | 列配置解析，自动注入 renderType 对应的 render 与宽度 |
-| `preset` / `globalParams` | 全局参数预设，定制 renderType 映射与标签颜色 |
-| `getTagColor` / `renderTagItem` / `renderTagList` | Tag 渲染工具 |
-| `getStatusType` / `renderStatusItem` | Status 渲染工具 |
+| 导出项                                                                              | 说明                                                 |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `computeColumnsValue` / `computeDisplay`                                            | 列值计算与展示渲染                                   |
+| `formatView` / `defaultFormat`                                                      | 声明式值格式化                                       |
+| `resolveColumns` / `resolveColumn`                                                  | 列配置解析，自动注入 renderType 对应的 render 与宽度 |
+| `preset` / `globalParams`                                                           | 全局参数预设，定制 renderType 映射与标签颜色         |
+| `getTagColor` / `renderTagItem` / `renderTagList`                                   | Tag 渲染工具                                         |
+| `getStatusType` / `renderStatusItem`                                                | Status 渲染工具                                      |
+| `buildTreeFromList` / `normalizeTreeData` / `flattenVisibleTree` / `flattenAllTree` | 树形数据组装与展平                                   |
+| `collectExpandableKeys` / `toggleExpandedKey` / `isTreeDataType`                    | 树形展开状态工具                                     |
+| `mergeTreeChildren` / `nodeCanExpand`                                               | 懒加载合并子节点 / 是否可展开                        |
+| `getTreeBreadcrumbItems`                                                            | 移动端树形面包屑路径节点                             |
+| `toggleTreeCheck` / `getTreeCheckState` / `buildTreeKeyMaps`                        | 树形勾选关联（checkRelation）                        |
 
 ### 使用场景
 
