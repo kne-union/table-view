@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunk_table_view_0_1_11=self.webpackChunk_table_view_0_1_11||[]).push([[264,833],{8151(e,i,t){t.r(i);const a={TableView:t(58872).A};t.d(i,["default",0,a,"manifest",0,{name:"table-view",version:"0.1.11","open-version":!0,"public-url":"/table-view",modules:[{name:"table-view",baseDir:"/home/runner/work/table-view/table-view",description:"A React table view component with column rendering, computed columns, formatting and sorting utilities",packageName:"@kne/table-view"}]}])}}]);
-//# sourceMappingURL=264.1ca8e548.chunk.js.map
