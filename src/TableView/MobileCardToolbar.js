@@ -13,12 +13,14 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortTool
   }
 
   const useTreeSelectAll = !!treeKeyMaps && rowSelection?.type === 'checkbox';
+  const selectableDataSource = (dataSource || []).filter(item => !item.disabled);
+  const pageKeys = selectableDataSource.map(getRowKey);
   const checkedAll =
     showSelectAll &&
     (rowSelection.isSelectedAll ||
       (useTreeSelectAll
         ? isAllTreeSelected({ mode: checkRelation, maps: treeKeyMaps, selectedKeys: rowSelection.selectedRowKeys })
-        : dataSource && dataSource.every(item => rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(getRowKey(item)) > -1)));
+        : pageKeys.length > 0 && pageKeys.every(key => rowSelection.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(key) > -1)));
   const indeterminate = showSelectAll
     ? useTreeSelectAll
       ? !checkedAll && hasAnyTreeSelected({ mode: checkRelation, maps: treeKeyMaps, selectedKeys: rowSelection.selectedRowKeys })
@@ -40,12 +42,11 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortTool
       rowSelection.onChange(buildSelectAllKeys({ mode: checkRelation, maps: treeKeyMaps, existingKeys: existing }));
       return;
     }
-    const pageKeys = (dataSource || []).map(getRowKey);
     if (!checked) {
       rowSelection.onChange(existing.filter(key => pageKeys.indexOf(key) === -1));
       return;
     }
-    if (!dataSource || dataSource.length === 0) {
+    if (pageKeys.length === 0) {
       return;
     }
     const merged = existing.slice();
