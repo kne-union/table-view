@@ -1,6 +1,6 @@
 {
   "name": "@kne/table-view",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "A React table view component with column rendering, computed columns, formatting and sorting utilities",
   "syntax": {
     "esmodules": true
@@ -97,7 +97,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
-    "@kne/button-group": "^0.1.24",
+    "@kne/button-group": "^0.1.34",
     "@kne/is-empty": "^1.1.0",
     "@kne/react-intl": "^0.1.15",
     "@kne/responsive-utils": "^0.1.9",
