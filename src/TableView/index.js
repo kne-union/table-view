@@ -6,6 +6,7 @@ import TreeExpandContent from './TreeExpandContent';
 import { Checkbox, Empty, Radio } from 'antd';
 import classnames from 'classnames';
 import get from 'lodash/get';
+import ButtonGroup from '@kne/button-group';
 import computeColumnsValue, { computeDisplay } from '../computeColumnsValue';
 import { isEmpty } from '@kne/is-empty';
 import { useIsMobile } from '@kne/responsive-utils';
@@ -20,6 +21,8 @@ import { collectExpandableKeys, flattenAllTree, flattenVisibleTree, getMaxTreeLe
 import { buildTreeKeyMaps, getTreeCheckState, resolveCheckRelation, toggleTreeCheck } from '../treeCheck';
 
 const getLayoutColumns = columns => columns.filter(column => column.display !== false);
+
+const withOptionsShare = node => <ButtonGroup.Share>{node}</ButtonGroup.Share>;
 
 const TableView = p => {
   const [colsSize, setColsSize] = useState({});
@@ -417,7 +420,7 @@ const TableView = p => {
 
   if (useMobileRender) {
     if (typeof resolvedRenderMobile === 'function') {
-      return (
+      return withOptionsShare(
         <div className={classnames(style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>
           {resolvedRenderMobile({
             ...others,
@@ -444,7 +447,7 @@ const TableView = p => {
       );
     }
 
-    return (
+    return withOptionsShare(
       <div {...others} className={classnames(style['table'], style['tableView'], style['is-mobile-card'], style['is-mobile-render'], 'info-page-table', sizeClassName, className)}>
         {renderMobileCardBody(displayDataSource, context)}
       </div>
@@ -452,14 +455,14 @@ const TableView = p => {
   }
 
   if (typeof render === 'function') {
-    return (
+    return withOptionsShare(
       <div {...others} className={classnames(style['table'], style['tableView'], 'info-page-table', sizeClassName, className)}>
         {render({ header, renderBody })}
       </div>
     );
   }
 
-  return (
+  return withOptionsShare(
     <div {...others} className={classnames(style['table'], style['tableView'], 'info-page-table', sizeClassName, className)}>
       {displayDataSource && displayDataSource.length > 0 ? (
         renderGrid(displayDataSource, context)
