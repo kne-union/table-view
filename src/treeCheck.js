@@ -81,6 +81,10 @@ export const buildTreeKeyMaps = (tree, { rowKey = 'id', childrenKey = 'children'
 
 const keySetOf = keys => new Set(keys || []);
 
+const isNodeDisabled = (key, maps) => !!maps?.nodeMap?.get(key)?.disabled;
+
+const getSelectableKeys = maps => (maps?.allKeys || []).filter(key => !isNodeDisabled(key, maps));
+
 const isCoveredByAncestor = (key, selectedSet, maps) => maps.getAncestorKeys(key).some(ancestor => selectedSet.has(ancestor));
 
 const isEffectivelySelected = (key, selectedSet, maps) => selectedSet.has(key) || isCoveredByAncestor(key, selectedSet, maps);
@@ -134,6 +138,9 @@ export const normalizeParentKeys = (keys, maps) => {
   const keysByDepth = maps.allKeys.slice().sort((a, b) => maps.getDescendantKeys(b).length - maps.getDescendantKeys(a).length);
 
   keysByDepth.forEach(key => {
+    if (isNodeDisabled(key, maps)) {
+      return;
+    }
     const childKeys = maps.childrenMap.get(key) || [];
     if (childKeys.length === 0) {
       return;
@@ -294,14 +301,19 @@ export const buildSelectAllKeys = ({ mode, maps, existingKeys = [] }) => {
   }
   if (mode === CHECK_RELATION.PARENT) {
     const merged = keySetOf(existingKeys);
-    maps.rootKeys.forEach(key => {
-      merged.add(key);
-      maps.getDescendantKeys(key).forEach(descendant => merged.delete(descendant));
-    });
-    return normalizeParentKeys(Array.from(merged), maps);
+    const addSelectableSubtree = key => {
+      if (!isNodeDisabled(key, maps)) {
+        merged.add(key);
+        maps.getDescendantKeys(key).forEach(descendant => merged.delete(descendant));
+        return;
+      }
+      (maps.childrenMap.get(key) || []).forEach(addSelectableSubtree);
+    };
+    maps.rootKeys.forEach(addSelectableSubtree);
+    return normalizeParentKeys(Array.from(merged), maps).filter(key => !isNodeDisabled(key, maps));
   }
   const merged = keySetOf(existingKeys);
-  maps.allKeys.forEach(key => merged.add(key));
+  getSelectableKeys(maps).forEach(key => merged.add(key));
   return formatKeys(merged, maps.allKeys);
 };
 
@@ -314,14 +326,15 @@ export const buildClearSelectAllKeys = ({ maps, existingKeys = [] }) => {
 };
 
 export const isAllTreeSelected = ({ mode, maps, selectedKeys }) => {
-  if (!maps || maps.allKeys.length === 0) {
+  const selectableKeys = getSelectableKeys(maps);
+  if (!maps || selectableKeys.length === 0) {
     return false;
   }
   const selectedSet = keySetOf(selectedKeys);
   if (mode === CHECK_RELATION.PARENT) {
-    return maps.rootKeys.every(key => isEffectivelySelected(key, selectedSet, maps));
+    return selectableKeys.every(key => isEffectivelySelected(key, selectedSet, maps));
   }
-  return maps.allKeys.every(key => selectedSet.has(key));
+  return selectableKeys.every(key => selectedSet.has(key));
 };
 
 export const hasAnyTreeSelected = ({ mode, maps, selectedKeys }) => {
@@ -329,8 +342,9 @@ export const hasAnyTreeSelected = ({ mode, maps, selectedKeys }) => {
     return false;
   }
   const selectedSet = keySetOf(selectedKeys);
+  const selectableKeys = getSelectableKeys(maps);
   if (mode === CHECK_RELATION.PARENT) {
-    return maps.allKeys.some(key => isEffectivelySelected(key, selectedSet, maps));
+    return selectableKeys.some(key => isEffectivelySelected(key, selectedSet, maps));
   }
-  return maps.allKeys.some(key => selectedSet.has(key));
+  return selectableKeys.some(key => selectedSet.has(key));
 };
