@@ -73,6 +73,41 @@ const SIZE_CONFIG = {
   }
 };
 
+/** format 类型默认列宽：保证日期/时间类内容单行不换行 */
+const FORMAT_SIZE_CONFIG = {
+  date: {
+    width: 160,
+    min: 120,
+    max: 400
+  },
+  datetime: {
+    width: 200,
+    min: 180,
+    max: 400
+  },
+  dateRange: {
+    width: 260,
+    min: 200,
+    max: 500
+  }
+};
+
+const getFormatName = format => {
+  if (typeof format !== 'string') {
+    return null;
+  }
+  const first = format.split(/\s+/).find(Boolean);
+  if (!first) {
+    return null;
+  }
+  return first.split('-')[0] || null;
+};
+
+const getFormatSizeConfig = format => {
+  const name = getFormatName(format);
+  return (name && FORMAT_SIZE_CONFIG[name]) || null;
+};
+
 const getRenderTypeRegistry = () => {
   const { default: defaultRender, ...renderers } = globalParams.renderType || {};
   return { defaultRender, renderers };
@@ -107,7 +142,7 @@ const getTypeConfigMap = () => {
   }, {});
 };
 
-const pickDimension = (columnValue, typeValue, sizeValue) => {
+const pickDimension = (columnValue, typeValue, sizeValue, formatValue) => {
   if (columnValue != null) {
     return columnValue;
   }
@@ -116,6 +151,9 @@ const pickDimension = (columnValue, typeValue, sizeValue) => {
   }
   if (typeValue != null) {
     return typeValue;
+  }
+  if (formatValue != null) {
+    return formatValue;
   }
   return undefined;
 };
@@ -169,11 +207,12 @@ export const resolveColumnDimensions = column => {
   const renderTypeDimensions = column?.renderType ? getRenderTypeDimensions(column.renderType) : null;
   const typeConfig = renderTypeDimensions?.typeConfig;
   const sizeConfig = renderTypeDimensions?.sizeConfig;
+  const formatConfig = getFormatSizeConfig(column?.format);
 
   return {
-    width: pickDimension(column?.width, typeConfig?.width, sizeConfig?.width),
-    min: pickDimension(column?.min, typeConfig?.min, sizeConfig?.min),
-    max: pickDimension(column?.max, typeConfig?.max, sizeConfig?.max)
+    width: pickDimension(column?.width, typeConfig?.width, sizeConfig?.width, formatConfig?.width),
+    min: pickDimension(column?.min, typeConfig?.min, sizeConfig?.min, formatConfig?.min),
+    max: pickDimension(column?.max, typeConfig?.max, sizeConfig?.max, formatConfig?.max)
   };
 };
 
