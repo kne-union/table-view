@@ -13,6 +13,10 @@
 - 行点击事件与自定义 `render` 拆分表头/表体
 - 通过 `sortRender` 配合 `useSort` 实现表头排序
 
+#### Table
+
+以 antd `Table` 作为展示层，列配置与 `TableView` 共用。支持列宽拖动、列显示隐藏、分组表头与粘性表头。`@kne/table-page` 仍兼容导出该组件。
+
 ### 核心 Hooks
 
 #### useSelectedRow
