@@ -440,6 +440,10 @@ preset({
 | `normalizeParentKeys(keys, maps)`                      | parent 模式折叠全选子树为父 key      |
 | `buildSelectAllKeys` / `buildClearSelectAllKeys`       | 树形全选 / 取消全选 keys             |
 
+### Table
+
+antd `Table` 展示层，外层 API 与 `TableView` 对齐（`columns`、`rowSelection`、树、`renderMobile`）。额外支持列宽拖动、列配置面板（`name` + `controllerOpen`）、`sticky` / `scrollTopInset`，以及透传 antd Table 属性（`scroll`、`pagination` 等）。`renderMobile` 默认 `true`。
+
 ### 常量
 
 | 常量                | 说明                                         |

@@ -37,6 +37,7 @@ const TableView = p => {
       placeholder: '-',
       emptyIsPlaceholder: true,
       empty: <Empty />,
+      renderMobile: true,
       dataType: 'list',
       parentKey: 'parentId',
       childrenKey: 'children',
