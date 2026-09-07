@@ -106,7 +106,6 @@
 
     &.is-disabled {
       cursor: not-allowed;
-      color: var(--font-color-grey-2);
     }
 
     &:hover:not(.is-selected-all):not(.is-selected):not(.is-disabled) > :global(.ant-table-cell) {
