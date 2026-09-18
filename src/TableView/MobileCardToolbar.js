@@ -4,6 +4,11 @@ import { buildClearSelectAllKeys, buildSelectAllKeys, hasAnyTreeSelected, isAllT
 import style from './style.module.scss';
 
 const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortToolbar, columns, checkRelation, treeKeyMaps }) => {
+  // 无数据时不展示全选/排序行（空态仅展示 empty）
+  if (!(dataSource || []).length) {
+    return null;
+  }
+
   const showSelectAll = rowSelection?.type === 'checkbox' && rowSelection.allowSelectedAll;
   const sortNode = typeof mobileSortToolbar === 'function' ? mobileSortToolbar({ columns }) : null;
   const showSort = !!sortNode;
