@@ -1,5 +1,6 @@
 import React from 'react';
 import { Checkbox } from 'antd';
+import classnames from 'classnames';
 import { buildClearSelectAllKeys, buildSelectAllKeys, hasAnyTreeSelected, isAllTreeSelected } from '../treeCheck';
 import style from './style.module.scss';
 
@@ -65,7 +66,7 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortTool
 
   return (
     <div
-      className={style['mobile-card-toolbar']}
+      className={classnames(style['mobile-card-toolbar'], 'info-page-table-mobile-card-toolbar')}
       onClick={event => {
         event.stopPropagation();
       }}
