@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Checkbox, Empty, Radio, Table as AntTable } from 'antd';
+import ButtonGroup from '@kne/button-group';
 import classnames from 'classnames';
 import get from 'lodash/get';
 import { isEmpty } from '@kne/is-empty';
@@ -70,8 +71,9 @@ const Table = p => {
   const tableRef = useRef(null);
   const tableWidth = useElementWidth(tableRef);
   // controllerOpen 默认 true：需等列宽计算；骨架屏等场景显式 false 时可立即渲染
-  const [isLayout, setIsLayout] = useState(() => p.controllerOpen !== false);
+  const isLayout = p.controllerOpen !== false && !tableWidth;
   const isMobile = useIsMobile();
+  const cellRenderCacheRef = useRef(new Map());
 
   const props = Object.assign(
     {},
@@ -272,18 +274,11 @@ const Table = p => {
     });
   }, [isTree, others.expandable, childrenKey, expandedRowKeys, handleExpandedChange]);
 
-  useEffect(() => {
-    if (tableWidth) {
-      setTimeout(() => setIsLayout(false), 0);
-    }
-  }, [tableWidth]);
-
   const { visibleColumns, columnsConfig, currentMoveColumnIndex, totalWidth, computedColumnProps, hasFixedColumn } = useTableConfig({
     columns,
     name,
     controllerOpen,
     tableWidth,
-    rowKey,
     tableServerApis
   });
 
@@ -335,9 +330,41 @@ const Table = p => {
     };
   }, [currentMoveColumnIndex, updateResizeGuide]);
 
-  const targetColumns = useMemo(() => visibleColumns.map((column, index) => Object.assign({}, column, { __index: index })), [visibleColumns]);
+  const targetColumns = useMemo(() => visibleColumns.map((column, index) => Object.assign({}, column, { __index: index, __source: column })), [visibleColumns]);
 
   const { columns: groupedColumns, hasGroupHeader } = useGroupHeader(targetColumns);
+
+  const hasRowSelection = !!rowSelection;
+
+  // render 引用不变时 rc-table 复用单元格内容；列宽 / 勾选变化重建 columns 不应触发整表单元格重渲染
+  const getCellRender = useCallback(
+    column => {
+      const source = column.__source || column;
+      const cacheKey = column.name ?? column.__index;
+      const cached = cellRenderCacheRef.current.get(cacheKey);
+      if (cached && cached.source === source && cached.context === context && cached.emptyIsPlaceholder === emptyIsPlaceholder && cached.placeholder === placeholder && cached.valueIsEmpty === valueIsEmpty) {
+        return cached.render;
+      }
+      const renderCell = (_, record) => {
+        const [computedColumn] = computeColumnsValue({
+          columns: [source],
+          emptyIsPlaceholder,
+          valueIsEmpty,
+          removeEmpty: false,
+          dataSource: record,
+          placeholder,
+          context
+        });
+        if (!computedColumn) {
+          return null;
+        }
+        return renderCellContent(computeDisplay({ column: computedColumn, placeholder, dataSource: record, context }), computedColumn, style['col-content']);
+      };
+      cellRenderCacheRef.current.set(cacheKey, { source, context, emptyIsPlaceholder, placeholder, valueIsEmpty, render: renderCell });
+      return renderCell;
+    },
+    [context, emptyIsPlaceholder, placeholder, valueIsEmpty]
+  );
 
   const antdColumns = useMemo(() => {
     const buildLeafColumn = (column, index) => {
@@ -358,21 +385,7 @@ const Table = p => {
           className: getAntCellClassName(),
           style: getColCellStyle(column)
         }),
-        render: (_, record) => {
-          const [computedColumn] = computeColumnsValue({
-            columns: [column],
-            emptyIsPlaceholder,
-            valueIsEmpty,
-            removeEmpty: false,
-            dataSource: record,
-            placeholder,
-            context
-          });
-          if (!computedColumn) {
-            return null;
-          }
-          return renderCellContent(computeDisplay({ column: computedColumn, placeholder, dataSource: record, context }), computedColumn, style['col-content']);
-        }
+        render: getCellRender(column)
       };
 
       if (!controllerOpen) {
@@ -414,7 +427,7 @@ const Table = p => {
     };
 
     const mapped = groupedColumns.map(mapColumn);
-    if (!isTree || rowSelection) {
+    if (!isTree || hasRowSelection) {
       return mapped;
     }
 
@@ -435,25 +448,7 @@ const Table = p => {
       }
     };
     return [expandColumn, ...mapped];
-  }, [
-    groupedColumns,
-    context,
-    emptyIsPlaceholder,
-    placeholder,
-    sortRender,
-    valueIsEmpty,
-    controllerOpen,
-    computedColumnProps,
-    currentMoveColumnIndex,
-    isTree,
-    rowSelection,
-    antdSelectionColumnWidth,
-    hasFixedColumn,
-    indentSize,
-    getTreeRowMeta,
-    loadingKeys,
-    handleToggleExpand
-  ]);
+  }, [groupedColumns, getCellRender, sortRender, controllerOpen, computedColumnProps, currentMoveColumnIndex, isTree, hasRowSelection, antdSelectionColumnWidth, hasFixedColumn, indentSize, getTreeRowMeta, loadingKeys, handleToggleExpand]);
 
   const antdRowSelection = useMemo(() => {
     if (!rowSelection) {
@@ -717,6 +712,7 @@ const Table = p => {
   }, [resolvedScrollTopInset, antdSelectionColumnWidth]);
 
   const useTreeCheckForRow = isTree && rowSelection?.type === 'checkbox' && checkRelation !== 'independent' && treeKeyMaps;
+  const selectedRowKeySet = useMemo(() => new Set(rowSelection?.selectedRowKeys || []), [rowSelection?.selectedRowKeys]);
 
   if (useMobileRender) {
     return (
@@ -773,7 +769,7 @@ const Table = p => {
       rowClassName={record => {
         const id = resolveRowKey(rowKey, record);
         const level = isTree ? treeKeyMaps?.getAncestorKeys(id)?.length || 0 : 0;
-        const isChecked = useTreeCheckForRow ? getTreeCheckState(id, rowSelection?.selectedRowKeys, checkRelation, treeKeyMaps).checked : rowSelection?.selectedRowKeys && rowSelection.selectedRowKeys.indexOf(id) > -1;
+        const isChecked = useTreeCheckForRow ? getTreeCheckState(id, rowSelection?.selectedRowKeys, checkRelation, treeKeyMaps).checked : selectedRowKeySet.has(id);
         return classnames('info-page-table-row', {
           [style['is-selected-all']]: rowSelection?.isSelectedAll,
           [style['is-selected']]: isChecked,
@@ -812,7 +808,7 @@ const Table = p => {
       })}
       style={tableWrapperStyle}
     >
-      <div className="info-page-table-body">{!isLayout && tableElement}</div>
+      <div className="info-page-table-body">{!isLayout && <ButtonGroup.Share>{tableElement}</ButtonGroup.Share>}</div>
       {currentMoveColumnIndex !== null && resizeGuideStyle && <span className={style['column-resize-guide']} style={resizeGuideStyle} aria-hidden />}
     </div>
   );
