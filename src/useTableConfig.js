@@ -5,7 +5,6 @@ import transform from 'lodash/transform';
 import { getColumnConfig } from './columnConfigUtils';
 import pick from 'lodash/pick';
 import findLastIndex from 'lodash/findLastIndex';
-import isEqual from 'lodash/isEqual';
 import { Col, Popover, Row } from 'antd';
 import { HolderOutlined, SettingOutlined } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
@@ -83,7 +82,7 @@ const TableConfigButton = ({ title, columns, config, setConfig }) => {
   );
 };
 
-const useTableConfig = ({ columns, name, controllerOpen = true, tableWidth = 0, rowKey, tableServerApis = tableLocalApis }) => {
+const useTableConfig = ({ columns, name, controllerOpen = true, tableWidth = 0, tableServerApis = tableLocalApis }) => {
   const [currentMoveColumnIndex, setCurrentMoveColumnIndex] = useState(null);
   const currentMoveColumnIndexRef = useRef(currentMoveColumnIndex);
   currentMoveColumnIndexRef.current = currentMoveColumnIndex;
@@ -240,18 +239,13 @@ const useTableConfig = ({ columns, name, controllerOpen = true, tableWidth = 0, 
         onHeaderCell: movingClass,
         onCell: movingClass,
         width: realWidth,
-        shouldCellUpdate: (record, prevRecord) => {
-          const itemKey = typeof rowKey === 'function' ? rowKey(record) : record[rowKey];
-          const prevItemKey = typeof rowKey === 'function' ? rowKey(prevRecord) : prevRecord[rowKey];
-          return currentMoveColumnIndexRef.current === null || currentMoveColumnIndexRef.current === index || !(itemKey === prevItemKey && isEqual(record[column.name], prevRecord[column.name]));
-        },
         title: renderColumnTitle(title, column, index, {
           withResize: true,
           withConfig: isLastColumn && controllerOpen
         })
       };
     },
-    [columnCount, controllerOpen, computedRealWidth, getConfigWidth, renderColumnTitle, rowKey, currentMoveColumnIndex]
+    [columnCount, controllerOpen, computedRealWidth, getConfigWidth, renderColumnTitle, currentMoveColumnIndex]
   );
 
   useEffect(() => {

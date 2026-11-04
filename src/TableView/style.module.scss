@@ -1,3 +1,5 @@
+@use '~@kne/responsive-utils/scss' as resp;
+
 .table {
   --kne-table-cell-padding: var(--kne-table-cell-padding-default, 8px);
   position: relative;
@@ -314,8 +316,11 @@
     pointer-events: none;
   }
 
-  &:hover:not(.is-selected-all):not(.is-selected):not(.is-disabled) {
-    background: var(--bg-color-grey-1);
+  // 触屏点按后 :hover 会残留，只在支持悬停的设备上生效
+  @media (hover: hover) {
+    &:hover:not(.is-selected-all):not(.is-selected):not(.is-disabled) {
+      background: var(--bg-color-grey-1);
+    }
   }
 }
 
@@ -473,7 +478,7 @@
   max-width: 9em;
   height: 24px;
   padding-inline: 10px !important;
-  border-radius: 12px !important;
+  border-radius: 999px !important;
   border: none !important;
   background: #fff !important;
   box-shadow: none !important;
@@ -503,7 +508,7 @@
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  border-radius: 12px;
+  border-radius: 50%;
   background: #fff;
   cursor: pointer;
   user-select: none;
@@ -578,5 +583,113 @@
   :global(.ant-dropdown-menu-item-divider) {
     margin: 4px 0;
     background: var(--bg-color-grey-2, #f0f0f0);
+  }
+}
+
+// 移动端触控尺寸（参考 antd-mobile）：正文 ≥ 14px，可点区域 ≥ 32px，勾选框 20px
+@include resp.mobile-container {
+  .mobile-card-toolbar,
+  .mobile-card-selection,
+  .tree-selection-control {
+    :global(.ant-checkbox-wrapper),
+    :global(.ant-radio-wrapper) {
+      --ant-control-interactive-size: 20px;
+      --ant-radio-radio-size: 20;
+      --ant-radio-dot-size: 10;
+    }
+  }
+
+  .mobile-card-toolbar {
+    min-height: 44px;
+    padding: 4px 6px 4px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+
+    :global(.ant-checkbox-wrapper) {
+      align-items: center;
+      min-height: 36px;
+      font-size: 14px;
+    }
+  }
+
+  .mobile-card-sort-field-btn {
+    max-width: 10em;
+    height: 32px;
+
+    :global(.ant-btn-icon) {
+      font-size: 12px;
+    }
+  }
+
+  .mobile-card-sort-field-text {
+    max-width: 7em;
+    font-size: 14px;
+  }
+
+  .mobile-card-sort-direction {
+    width: 32px;
+    height: 32px;
+  }
+
+  .mobile-card-sort-icon {
+    font-size: 12px;
+  }
+
+  .mobile-card-sort-dropdown {
+    :global(.ant-dropdown-menu-item) {
+      min-height: 44px;
+      font-size: 15px;
+    }
+  }
+
+  .mobile-card-sort-menu-check {
+    font-size: 14px;
+  }
+
+  // 负 margin 扩大勾选框可点区域而不改变卡片布局
+  .mobile-card-selection {
+    padding-top: 0;
+
+    :global(.ant-checkbox-wrapper),
+    :global(.ant-radio-wrapper) {
+      padding: 8px;
+      margin: -8px;
+    }
+  }
+
+  .tree-selection-control {
+    width: 20px;
+    height: 20px;
+  }
+
+  .tree-expand,
+  .tree-leaf-placeholder {
+    width: 28px;
+    height: 28px;
+  }
+
+  .tree-expand :global(.anticon) {
+    font-size: 14px;
+  }
+
+  .mobile-card-breadcrumb {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mobile-card-field.is-main .mobile-card-value {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .mobile-card-actions {
+    padding-top: 0;
+  }
+
+  .mobile-card-action-content {
+    --button-group-more-height: 32px;
+    --button-group-more-min-width: 32px;
+    --button-group-more-icon-size: 20px;
+    margin: -4px -6px 0 0;
   }
 }
