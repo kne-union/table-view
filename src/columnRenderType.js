@@ -269,3 +269,10 @@ export const isOptionsColumn = column => {
   }
   return parseRenderType(column?.renderType).type === 'options';
 };
+
+export const isMainColumn = column => {
+  if (column?.type === 'main') {
+    return true;
+  }
+  return parseRenderType(column?.renderType).type === 'main';
+};
