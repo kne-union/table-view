@@ -130,7 +130,9 @@ renderMobile={({ displayDataSource, renderToolbar, getSelectionProps, getRowKey,
 | primary            | boolean             | -              | main 类型：是否显示主色样式                                                                                    |
 | hover              | boolean             | -              | main 类型：是否显示悬停样式                                                                                    |
 | onClick            | function            | -              | main 类型：点击回调 `({ item, colItem, event }) => void`                                                       |
-| split              | string              | -              | list 类型：列表项分隔符，默认 `,`                                                                              |
+| maxCount           | number              | `3`            | list / tagList 类型：最多展示条数；超出时展示 `maxCount - 1` 条加「展开 +N」，展开后可「收起」                 |
+| renderItem         | function            | -              | list / tagList 类型：自定义单项渲染 `(item, { index, column, dataSource }) => ReactNode`                       |
+| split              | string              | -              | list 类型：传入后改为按分隔符拼接为一行文本（旧用法，不折叠）                                                  |
 | buttonGroup        | object              | -              | options 类型：透传给 `@kne/button-group` 的属性                                                                |
 
 #### rowSelection
@@ -272,8 +274,8 @@ const sortedData = useMemo(() => TableView.sortDataSource(dataSource, sort, colu
 | `options`     | 操作列，铺满单元格，配合 `@kne/button-group`             | 180px    |
 | `tag`         | 单个 Tag，`getValueOf` 返回 `{ type, text }`             | 140px    |
 | `status`      | 状态 Badge，`getValueOf` 返回 `{ type, text }`           | 100px    |
-| `tagList`     | 多个 Tag 列表                                            | 300px    |
-| `list`        | 文本列表，可用 `split` 指定分隔符                        | 200px    |
+| `tagList`     | Tag 列表，数据规则同 `tag`，支持 `maxCount` 折叠         | 300px    |
+| `list`        | 数组逐项展示（每项一行），支持 `renderItem` / `maxCount` | 200px    |
 | `description` | 长文本描述列，自动省略                                   | 400px    |
 
 #### 尺寸修饰词

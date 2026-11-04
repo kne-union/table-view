@@ -17,8 +17,12 @@ const dataSource = [
     id: 'ORD001',
     customerName: '深圳市腾讯计算机系统有限公司',
     category: '企业客户',
-    tags: ['物流', '加急'],
-    keywords: ['合同', '附件', '春节前'],
+    tags: ['物流', '加急', '春节前', '大客户'],
+    keywords: ['合同', '附件', '春节前', '物流'],
+    contacts: [
+      { name: '张三', phone: '138-0000-0001' },
+      { name: '李四', phone: '138-0000-0002' }
+    ],
     remark: '客户要求春节前完成交付，需协调物流加急处理，并同步更新合同附件。',
     amount: 42500,
     status: '待发货'
@@ -29,6 +33,13 @@ const dataSource = [
     category: '战略客户',
     tags: ['评审', '配置清单'],
     keywords: ['需求评审', '配置清单'],
+    contacts: [
+      { name: '王五', phone: '138-0000-0003' },
+      { name: '赵六', phone: '138-0000-0004' },
+      { name: '孙七', phone: '138-0000-0005' },
+      { name: '周八', phone: '138-0000-0006' },
+      { name: '吴九', phone: '138-0000-0007' }
+    ],
     remark: '项目处于需求评审阶段，待客户确认最终配置清单后安排发货。',
     amount: 85000,
     status: '处理中'
@@ -39,6 +50,7 @@ const dataSource = [
     category: '企业客户',
     tags: ['拣货', '付款完成'],
     keywords: ['付款', '拣货', '发货'],
+    contacts: [{ name: '郑十', phone: '138-0000-0008' }],
     remark: '已完成付款，仓库正在拣货，预计两个工作日内发出第一批货物。',
     amount: 120000,
     status: '已完成'
@@ -74,6 +86,19 @@ const columns = [
   {
     name: 'keywords',
     title: '关键词',
+    renderType: 'list',
+    getValueOf: item => item.keywords
+  },
+  {
+    name: 'contacts',
+    title: '联系人',
+    renderType: 'list',
+    maxCount: 4,
+    renderItem: contact => `${contact.name} ${contact.phone}`
+  },
+  {
+    name: 'keywordsText',
+    title: '关键词（split）',
     renderType: 'list',
     split: '、',
     getValueOf: item => item.keywords
@@ -121,18 +146,34 @@ const BaseExample = () => {
           列配置 <code>renderType</code> 声明列的渲染方式，无需手写 <code>render</code>。内置类型：
         </p>
         <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
-          <li><code>main</code> — 主信息列，支持 <code>primary</code> / <code>hover</code> / <code>onClick</code></li>
-          <li><code>amount</code> — 金额列，右对齐，配合 <code>format</code> 格式化</li>
-          <li><code>tag</code> — 单个 Tag，<code>getValueOf</code> 返回 <code>{'{ type, text }'}</code></li>
-          <li><code>status</code> — 状态 Badge，<code>getValueOf</code> 返回 <code>{'{ type, text }'}</code></li>
-          <li><code>tagList</code> — 多个 Tag 列表</li>
-          <li><code>list</code> — 文本列表，可用 <code>split</code> 指定分隔符</li>
-          <li><code>options</code> — 操作列，<code>getValueOf</code> 返回按钮配置数组</li>
-          <li><code>description</code> — 长文本描述列</li>
+          <li>
+            <code>main</code> — 主信息列，支持 <code>primary</code> / <code>hover</code> / <code>onClick</code>
+          </li>
+          <li>
+            <code>amount</code> — 金额列，右对齐，配合 <code>format</code> 格式化
+          </li>
+          <li>
+            <code>tag</code> — 单个 Tag，<code>getValueOf</code> 返回 <code>{'{ type, text }'}</code>
+          </li>
+          <li>
+            <code>status</code> — 状态 Badge，<code>getValueOf</code> 返回 <code>{'{ type, text }'}</code>
+          </li>
+          <li>
+            <code>tagList</code> — Tag 列表，超过 <code>maxCount</code>（默认 3）折叠为「展开 +N」
+          </li>
+          <li>
+            <code>list</code> — 数组逐项展示，支持 <code>renderItem</code> / <code>maxCount</code>；传 <code>split</code> 时按旧方式拼接为一行
+          </li>
+          <li>
+            <code>options</code> — 操作列，<code>getValueOf</code> 返回按钮配置数组
+          </li>
+          <li>
+            <code>description</code> — 长文本描述列
+          </li>
         </ul>
         <p>
-          可与尺寸修饰词组合：<code>short</code> / <code>small</code> / <code>large</code>（如 <code>tag-short</code>、<code>status-small</code>、<code>main-large</code>）。
-          通过 <code>getValueOf</code> 传入 render 所需数据结构，通过 <code>format</code> 做日期、金额等展示格式化。
+          可与尺寸修饰词组合：<code>short</code> / <code>small</code> / <code>large</code>（如 <code>tag-short</code>、<code>status-small</code>、<code>main-large</code>）。 通过 <code>getValueOf</code> 传入 render 所需数据结构，通过{' '}
+          <code>format</code> 做日期、金额等展示格式化。
         </p>
       </div>
       <TableView dataSource={dataSource} columns={columns} />

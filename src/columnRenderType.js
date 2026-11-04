@@ -235,7 +235,7 @@ export const resolveRenderType = renderTypeValue => {
   };
 };
 
-const ELLIPSIS_HANDLED_TYPES = ['main', 'amount'];
+const ELLIPSIS_HANDLED_TYPES = ['main', 'amount', 'list'];
 const FULL_WIDTH_CELL_TYPES = ['options'];
 
 export const resolveColumn = column => {
