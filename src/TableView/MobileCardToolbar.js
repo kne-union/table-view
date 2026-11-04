@@ -72,10 +72,9 @@ const MobileCardToolbar = ({ rowSelection, dataSource, getRowKey, mobileSortTool
     >
       <div className={style['mobile-card-toolbar-left']}>
         {showSelectAll ? (
-          <>
-            <Checkbox checked={!!checkedAll} indeterminate={!!indeterminate} onChange={handleSelectAllChange} />
-            <span>全选</span>
-          </>
+          <Checkbox checked={!!checkedAll} indeterminate={!!indeterminate} onChange={handleSelectAllChange}>
+            全选
+          </Checkbox>
         ) : null}
       </div>
       <div className={style['mobile-card-toolbar-right']}>{sortNode}</div>

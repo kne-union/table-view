@@ -3,7 +3,7 @@ import { Checkbox, Radio } from 'antd';
 import classnames from 'classnames';
 import get from 'lodash/get';
 import computeColumnsValue, { computeDisplay } from '../computeColumnsValue';
-import { isOptionsColumn } from '../columnRenderType';
+import { isMainColumn, isOptionsColumn } from '../columnRenderType';
 import { renderCellContent } from '../renderCellContent';
 import { getTreeBreadcrumbItems } from '../treeData';
 import TreeExpandContent from './TreeExpandContent';
@@ -154,7 +154,7 @@ const MobileCardList = ({
                     return null;
                   }
                   return (
-                    <div key={column.name} className={classnames(style['mobile-card-field'], 'info-page-table-mobile-card-field')}>
+                    <div key={column.name} className={classnames(style['mobile-card-field'], 'info-page-table-mobile-card-field', { [style['is-main']]: isMainColumn(column) })}>
                       <div className={style['mobile-card-label']}>{column.title}</div>
                       <div className={style['mobile-card-value']}>{renderCellContent(computeDisplay({ column: columnValue, placeholder, dataSource: item, context }), columnValue, style['mobile-card-value-content'])}</div>
                     </div>
