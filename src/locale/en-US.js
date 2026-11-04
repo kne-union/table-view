@@ -6,7 +6,9 @@ const locale = {
   HiddenInfo: 'Hidden Columns',
   Search: 'Search',
   Cancel: 'Cancel',
-  Confirm: 'Confirm'
+  Confirm: 'Confirm',
+  ListExpand: 'More +{count}',
+  ListCollapse: 'Less'
 };
 
 export default locale;

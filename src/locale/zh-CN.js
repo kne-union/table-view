@@ -6,7 +6,9 @@ const locale = {
   HiddenInfo: '隐藏的信息',
   Search: '搜索',
   Cancel: '取消',
-  Confirm: '确定'
+  Confirm: '确定',
+  ListExpand: '展开 +{count}',
+  ListCollapse: '收起'
 };
 
 export default locale;
